@@ -1,3 +1,5 @@
+import i18n from "../i18n";
+
 // Бекенд віддає весь час у секундах (float). Форматування в м:сс.мс — на фронті.
 
 function pad(n, len = 2) {
@@ -41,5 +43,5 @@ export function formatClock(seconds) {
 /** Швидкість у км/год — бекенд віддає число, лишається лише додати одиницю. */
 export function formatSpeed(kph) {
   if (kph == null || Number.isNaN(kph)) return "—";
-  return `${Math.round(kph)} км/год`;
+  return i18n.t("units.kph", { value: Math.round(kph) });
 }

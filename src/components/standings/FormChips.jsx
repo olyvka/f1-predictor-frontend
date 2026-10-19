@@ -1,3 +1,5 @@
+import { t } from "../../i18n";
+
 // Форма за останні гонки: "1" "4" "DNF" плашками. Подіум — акцентом,
 // очкова зона — нейтрально, поза очками — тьмяно, сходи — червоним.
 function tone(label) {
@@ -14,7 +16,7 @@ export default function FormChips({ form }) {
       {form.map((f) => (
         <span
           key={f.round}
-          title={`Етап ${f.round}: ${f.label === "DNF" ? "схід" : f.label === "DSQ" ? "дискваліфікація" : `P${f.label}`}`}
+          title={t("form.round", { round: f.round, result: f.label === "DNF" ? t("form.dnf") : f.label === "DSQ" ? t("form.dsq") : `P${f.label}` })}
           className={`inline-flex items-center justify-center min-w-7 h-5 px-1 rounded border text-[10px] font-mono-data font-bold ${tone(f.label)}`}
         >
           {f.label}

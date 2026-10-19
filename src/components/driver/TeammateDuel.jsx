@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import DriverAvatar from "../overview/DriverAvatar";
 import Section from "../overview/Section";
+import { t } from "../../i18n";
 
 // Рахунок дуелі смужкою: частка пілота — акцентом, напарника — тьмяно.
 function DuelBar({ label, won, lost, hint }) {
@@ -28,33 +29,33 @@ function DuelBar({ label, won, lost, hint }) {
 function gapText(pct) {
   if (pct == null) return null;
   const faster = pct < 0;
-  return `${faster ? "швидший" : "повільніший"} на ${Math.abs(pct).toFixed(2)}%`;
+  return t(faster ? "duel.faster" : "duel.slower", { value: Math.abs(pct).toFixed(2) });
 }
 
 // Напарник має ту саму машину — найчесніше мірило пілота.
 export default function TeammateDuel({ driver, teammates, year }) {
   if (!teammates?.length) return null;
   return (
-    <Section title={teammates.length > 1 ? "Проти напарників" : "Проти напарника"}>
-      {teammates.map((t) => (
-        <div key={t.driver_ref} className="flex flex-col gap-3 pt-3 border-t border-(--color-line) first:border-t-0 first:pt-0">
+    <Section title={teammates.length > 1 ? t("duel.titleMany") : t("duel.title")}>
+      {teammates.map((mate) => (
+        <div key={mate.driver_ref} className="flex flex-col gap-3 pt-3 border-t border-(--color-line) first:border-t-0 first:pt-0">
           <div className="flex items-center gap-3">
             <DriverAvatar driver={driver} size={36} />
-            <span className="text-(--color-text-dim) text-xs">проти</span>
-            <Link to={`/${year}/drivers/${t.driver_ref}`} className="flex items-center gap-2 group min-w-0">
-              <DriverAvatar driver={t} size={36} />
-              <span className="font-semibold truncate group-hover:text-(--color-accent) transition-colors">{t.full_name}</span>
+            <span className="text-(--color-text-dim) text-xs">{t("duel.vs")}</span>
+            <Link to={`/${year}/drivers/${mate.driver_ref}`} className="flex items-center gap-2 group min-w-0">
+              <DriverAvatar driver={mate} size={36} />
+              <span className="font-semibold truncate group-hover:text-(--color-accent) transition-colors">{mate.full_name}</span>
             </Link>
-            <span className="ml-auto text-xs text-(--color-text-dim) shrink-0">{t.races} гонок разом</span>
+            <span className="ml-auto text-xs text-(--color-text-dim) shrink-0">{t("duel.together", { count: mate.races })}</span>
           </div>
-          <DuelBar label="Кваліфікація" won={t.quali.won} lost={t.quali.lost} hint="Хто кваліфікувався вище" />
-          {t.quali_gap_pct_median != null && (
+          <DuelBar label={t("duel.quali")} won={mate.quali.won} lost={mate.quali.lost} hint={t("duel.qualiHint")} />
+          {mate.quali_gap_pct_median != null && (
             <p className="text-xs text-(--color-text-dim) -mt-1.5">
-              У середньому (медіана) {gapText(t.quali_gap_pct_median)} в одному сегменті кваліфікації
+              {t("duel.medianGap", { gap: gapText(mate.quali_gap_pct_median) })}
             </p>
           )}
-          <DuelBar label="Гонка" won={t.race.won} lost={t.race.lost} hint="Лише гонки, де фінішували обидва" />
-          <DuelBar label="Очки" won={t.points.mine} lost={t.points.mate} hint="Очки в гонках, де їхали разом" />
+          <DuelBar label={t("duel.race")} won={mate.race.won} lost={mate.race.lost} hint={t("duel.raceHint")} />
+          <DuelBar label={t("standingsTable.points")} won={mate.points.mine} lost={mate.points.mate} hint={t("duel.pointsHint")} />
         </div>
       ))}
     </Section>

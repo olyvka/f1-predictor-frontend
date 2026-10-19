@@ -2,6 +2,7 @@ import { formatLapTime } from "../../utils/time";
 import { teamHex } from "../../utils/constants";
 import PositionChart from "../charts/PositionChart";
 import Section, { Fact } from "../overview/Section";
+import { t } from "../../i18n";
 
 function median(values) {
   if (!values.length) return null;
@@ -23,7 +24,7 @@ function paceByDriver(laps) {
 
 function diff(a, b) {
   const d = a - b;
-  return `${d < 0 ? "−" : "+"}${Math.abs(d).toFixed(3)} с`;
+  return t("units.secondsSpaced", { value: `${d < 0 ? "−" : "+"}${Math.abs(d).toFixed(3)}` });
 }
 
 // Гонка відносно всього поля: темп, позиції по колах (пілот і напарник),
@@ -63,38 +64,38 @@ export default function RaceVsField({ allLaps, code, mateCode, teamColor, pitSto
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] items-start">
       {positionSeries.length > 0 && (
-        <Section title={mateCode ? "Позиції по колах — з напарником" : "Позиції по колах"}>
+        <Section title={mateCode ? t("vsField.positionsMate") : t("vsField.positions")}>
           <PositionChart series={positionSeries} height={240} />
         </Section>
       )}
 
-      <Section title="Відносно поля">
+      <Section title={t("vsField.title")}>
         <div className="flex flex-col">
           {mine != null && (
-            <Fact label="Темп (медіана кіл)" hint={rank ? `${rank}-й з ${ranked.length} у полі` : null}>
+            <Fact label={t("vsField.pace")} hint={rank ? t("vsField.rank", { rank, of: ranked.length }) : null}>
               {formatLapTime(mine)}
             </Fact>
           )}
-          {mine != null && fieldMedian != null && <Fact label="Проти медіани поля">{diff(mine, fieldMedian)}</Fact>}
+          {mine != null && fieldMedian != null && <Fact label={t("vsField.vsMedian")}>{diff(mine, fieldMedian)}</Fact>}
           {mine != null && winner && winner !== code && pace.get(winner) != null && (
-            <Fact label={`Проти переможця (${winner})`}>{diff(mine, pace.get(winner))}</Fact>
+            <Fact label={t("vsField.vsWinner", { winner })}>{diff(mine, pace.get(winner))}</Fact>
           )}
           {(myStops.length > 0 || redFlagStops > 0) && (
             <Fact
-              label={myStops.length ? `Піт-стопи · ${myStops.length}` : "Піт-стопи"}
+              label={myStops.length ? `${t("vsField.stops")} · ${myStops.length}` : t("vsField.stops")}
               hint={[
-                avgStop != null && `у середньому в полі ${avgStop.toFixed(1)} с`,
-                redFlagStops > 0 && `без ${redFlagStops} під червоним прапором`,
+                avgStop != null && t("vsField.fieldAvg", { value: avgStop.toFixed(1) }),
+                redFlagStops > 0 && t("vsField.redFlagExcluded", { count: redFlagStops }),
               ]
                 .filter(Boolean)
                 .join(" · ")}
             >
-              {myStops.length ? myStops.map((p) => `${p.duration.toFixed(1)} с`).join(", ") : "—"}
+              {myStops.length ? myStops.map((p) => t("units.secondsSpaced", { value: p.duration.toFixed(1) })).join(", ") : "—"}
             </Fact>
           )}
         </div>
         <p className="text-[11px] text-(--color-text-dim)">
-          Темп — медіана кіл без піт-стопів, першого кола й Safety Car. Піт-стоп — увесь проїзд піт-лейну.
+          {t("vsField.explain")}
         </p>
       </Section>
     </div>

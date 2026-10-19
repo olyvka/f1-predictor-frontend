@@ -1,4 +1,5 @@
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { t } from "../../i18n";
 
 // Накопичені очки по етапах — "боротьба за титул".
 // rounds: [{round, name}]; series: [{key, label, color, dash?, values: [очки після кожного етапу]}]
@@ -9,7 +10,7 @@ function ChartTooltip({ active, payload, label, rounds }) {
   return (
     <div className="bg-(--color-surface) border border-(--color-line) rounded-md px-3 py-2 text-xs">
       <p className="text-(--color-text-dim) mb-1">
-        Етап {label}
+        {t("chart.roundN", { round: label })}
         {name && ` · ${name}`}
       </p>
       {sorted.map((p) => (
@@ -38,7 +39,7 @@ export default function PointsProgressChart({ rounds, series, height = 300 }) {
             dataKey="round"
             stroke="var(--color-text-dim)"
             tick={{ fill: "var(--color-text-dim)", fontSize: 11 }}
-            label={{ value: "Етап", position: "insideBottom", offset: -2, fill: "var(--color-text-dim)", fontSize: 11 }}
+            label={{ value: t("chart.round"), position: "insideBottom", offset: -2, fill: "var(--color-text-dim)", fontSize: 11 }}
           />
           <YAxis stroke="var(--color-text-dim)" tick={{ fill: "var(--color-text-dim)", fontSize: 11 }} width={44} />
           <Tooltip content={<ChartTooltip rounds={rounds} />} />

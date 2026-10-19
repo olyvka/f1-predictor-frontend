@@ -1,5 +1,6 @@
 import { ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceLine, Cell } from "recharts";
 import { teamHex } from "../../utils/constants";
+import { t } from "../../i18n";
 
 // points: [{code, teamColor, grid, position}] — усе поле одразу. Діагональ
 // x=y — референс "без змін"; крапки вище неї (менша Position при тому ж
@@ -13,10 +14,10 @@ function ChartTooltip({ active, payload }) {
     <div className="bg-(--color-surface) border border-(--color-line) rounded-md px-3 py-2 text-xs font-mono-data">
       <p className="font-semibold">{code}</p>
       <p className="text-(--color-text-dim)">
-        Старт P{grid} → Фініш P{position}
+        {t("charts.startToFinish", { grid, position })}
       </p>
       <p style={{ color: delta > 0 ? "var(--color-good)" : delta < 0 ? "var(--color-danger)" : "var(--color-text-dim)" }}>
-        {delta === 0 ? "без змін" : delta > 0 ? `+${delta} позицій` : `${delta} позицій`}
+        {delta === 0 ? t("charts.noChange") : t("charts.positionsDelta", { count: Math.abs(delta), sign: delta > 0 ? "+" : "−" })}
       </p>
     </div>
   );
@@ -25,7 +26,7 @@ function ChartTooltip({ active, payload }) {
 export default function GridPositionScatter({ points, height = 320 }) {
   const clean = (points || []).filter((p) => p.grid != null && p.position != null);
   if (!clean.length) {
-    return <p className="text-sm text-(--color-text-dim)">Недостатньо даних (потрібні старт і фініш).</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("charts.noGridData")}</p>;
   }
 
   const max = Math.max(...clean.map((p) => Math.max(p.grid, p.position)), 1);
@@ -42,7 +43,7 @@ export default function GridPositionScatter({ points, height = 320 }) {
           stroke="var(--color-text-dim)"
           tick={{ fill: "var(--color-text-dim)", fontSize: 11 }}
           tickFormatter={(v) => `P${v}`}
-          label={{ value: "Старт", position: "insideBottom", offset: -4, fill: "var(--color-text-dim)", fontSize: 11 }}
+          label={{ value: t("charts.start"), position: "insideBottom", offset: -4, fill: "var(--color-text-dim)", fontSize: 11 }}
         />
         <YAxis
           type="number"
@@ -53,7 +54,7 @@ export default function GridPositionScatter({ points, height = 320 }) {
           stroke="var(--color-text-dim)"
           tick={{ fill: "var(--color-text-dim)", fontSize: 11 }}
           tickFormatter={(v) => `P${v}`}
-          label={{ value: "Фініш", angle: -90, position: "insideLeft", fill: "var(--color-text-dim)", fontSize: 11 }}
+          label={{ value: t("charts.finish"), angle: -90, position: "insideLeft", fill: "var(--color-text-dim)", fontSize: 11 }}
           width={44}
         />
         <ReferenceLine segment={[{ x: 1, y: 1 }, { x: max, y: max }]} stroke="var(--color-text-dim)" strokeDasharray="4 4" />

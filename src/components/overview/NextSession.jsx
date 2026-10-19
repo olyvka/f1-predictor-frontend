@@ -1,6 +1,7 @@
 import { formatDateTime, parseUtc, splitDuration } from "../../utils/format";
 import { useNow } from "../../hooks/useNow";
 import Section from "./Section";
+import { t } from "../../i18n";
 
 function Unit({ value, label }) {
   return (
@@ -21,10 +22,10 @@ export default function NextSession({ sessions }) {
     .find((s) => s.at && s.at.getTime() > now);
   if (!next) return null;
 
-  const t = splitDuration(next.at.getTime() - now);
+  const left = splitDuration(next.at.getTime() - now);
 
   return (
-    <Section title="До наступної сесії">
+    <Section title={t("nextSession.title")}>
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex flex-col">
           <span className="text-lg font-bold uppercase">
@@ -33,10 +34,10 @@ export default function NextSession({ sessions }) {
           <span className="text-sm text-(--color-text-dim) font-mono-data">{formatDateTime(next.at.toISOString())}</span>
         </div>
         <div className="flex gap-2" role="timer" aria-live="off">
-          <Unit value={t.days} label="дн" />
-          <Unit value={t.hours} label="год" />
-          <Unit value={t.minutes} label="хв" />
-          <Unit value={t.seconds} label="с" />
+          <Unit value={left.days} label={t("units.d")} />
+          <Unit value={left.hours} label={t("units.h")} />
+          <Unit value={left.minutes} label={t("units.m")} />
+          <Unit value={left.seconds} label={t("units.s")} />
         </div>
       </div>
     </Section>

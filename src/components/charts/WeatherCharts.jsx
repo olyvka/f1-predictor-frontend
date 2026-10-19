@@ -13,6 +13,7 @@ import { formatClock, formatLapTime } from "../../utils/time";
 import { median } from "../../utils/stats";
 import StatTile from "../common/StatTile";
 import { timeDomain } from "../../utils/chartAxis";
+import { t } from "../../i18n";
 
 // Кожен графік — окрема шкала Y (ніколи dual-axis): температура, вологість,
 // вітер і темп мають різні одиниці. syncId+syncMethod="value" синхронізує
@@ -62,7 +63,7 @@ function ChartTooltip({ active, payload, label, unit, formatter }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-(--color-surface) border border-(--color-line) rounded-md px-3 py-2 text-xs font-mono-data">
-      <p className="text-(--color-text-dim) mb-1">Час {formatClock(label)}</p>
+      <p className="text-(--color-text-dim) mb-1">{t("weather.time", { time: formatClock(label) })}</p>
       {payload.map((p) => (
         <p key={p.dataKey} style={{ color: p.color }}>
           {p.name}: {formatter ? formatter(p.value) : `${p.value}${unit}`}
@@ -74,7 +75,7 @@ function ChartTooltip({ active, payload, label, unit, formatter }) {
 
 export default function WeatherCharts({ points, laps }) {
   if (!points.length) {
-    return <p className="text-sm text-(--color-text-dim)">Дані про погоду відсутні.</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("weather.none")}</p>;
   }
 
   const bands = rainBands(points);
@@ -85,15 +86,15 @@ export default function WeatherCharts({ points, laps }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        <StatTile label="Повітря" value={`${latest.AirTemp?.toFixed(1) ?? "—"}°C`} hint={`Макс. ${max("AirTemp").toFixed(1)}°C`} />
-        <StatTile label="Траса" value={`${latest.TrackTemp?.toFixed(1) ?? "—"}°C`} hint={`Макс. ${max("TrackTemp").toFixed(1)}°C`} accent />
-        <StatTile label="Вологість" value={`${latest.Humidity?.toFixed(1) ?? "—"}%`} hint={`Макс. ${max("Humidity").toFixed(1)}%`} />
-        <StatTile label="Вітер" value={`${latest.WindSpeed?.toFixed(1) ?? "—"} м/с`} hint={`Макс. ${max("WindSpeed").toFixed(1)} м/с`} />
+        <StatTile label={t("weather.air")} value={`${latest.AirTemp?.toFixed(1) ?? "—"}°C`} hint={t("weather.max", { value: `${max("AirTemp").toFixed(1)}°C` })} />
+        <StatTile label={t("weather.track")} value={`${latest.TrackTemp?.toFixed(1) ?? "—"}°C`} hint={t("weather.max", { value: `${max("TrackTemp").toFixed(1)}°C` })} accent />
+        <StatTile label={t("weather.humidity")} value={`${latest.Humidity?.toFixed(1) ?? "—"}%`} hint={t("weather.max", { value: `${max("Humidity").toFixed(1)}%` })} />
+        <StatTile label={t("weather.wind")} value={t("units.mps", { value: latest.WindSpeed?.toFixed(1) ?? "—" })} hint={t("weather.max", { value: t("units.mps", { value: max("WindSpeed").toFixed(1) }) })} />
       </div>
 
       <div>
         <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-          Температура (°C){bands.length > 0 && <span className="ml-2 text-(--color-accent)">дощ заштриховано</span>}
+          {t("weather.temperature")}{bands.length > 0 && <span className="ml-2 text-(--color-accent)">{t("weather.rainShaded")}</span>}
         </h4>
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={points} syncId="weather" syncMethod="value" margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
@@ -105,34 +106,34 @@ export default function WeatherCharts({ points, laps }) {
             <YAxis width={40} {...axisProps()} />
             <Tooltip content={<ChartTooltip unit="°C" />} />
             <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Line type="monotone" dataKey="AirTemp" name="Повітря" stroke="#2f80ed" strokeWidth={2} dot={false} isAnimationActive={false} />
-            <Line type="monotone" dataKey="TrackTemp" name="Траса" stroke="#ff5c5c" strokeWidth={2} dot={false} isAnimationActive={false} />
+            <Line type="monotone" dataKey="AirTemp" name={t("weather.air")} stroke="#2f80ed" strokeWidth={2} dot={false} isAnimationActive={false} />
+            <Line type="monotone" dataKey="TrackTemp" name={t("weather.track")} stroke="#ff5c5c" strokeWidth={2} dot={false} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
       <div>
-        <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">Вологість (%)</h4>
+        <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">{t("weather.humidityAxis")}</h4>
         <ResponsiveContainer width="100%" height={160}>
           <LineChart data={points} syncId="weather" syncMethod="value" margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke="var(--color-line)" strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="Time" tickFormatter={formatClock} {...axisProps()} />
             <YAxis width={40} {...axisProps()} />
             <Tooltip content={<ChartTooltip unit="%" />} />
-            <Line type="monotone" dataKey="Humidity" name="Вологість" stroke="#43b04a" strokeWidth={2} dot={false} isAnimationActive={false} />
+            <Line type="monotone" dataKey="Humidity" name={t("weather.humidity")} stroke="#43b04a" strokeWidth={2} dot={false} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
       <div>
-        <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">Вітер (м/с)</h4>
+        <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">{t("weather.windAxis")}</h4>
         <ResponsiveContainer width="100%" height={160}>
           <LineChart data={points} syncId="weather" syncMethod="value" margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid stroke="var(--color-line)" strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="Time" tickFormatter={formatClock} {...axisProps()} />
             <YAxis width={40} {...axisProps()} />
-            <Tooltip content={<ChartTooltip unit=" м/с" />} />
-            <Line type="monotone" dataKey="WindSpeed" name="Швидкість вітру" stroke="#ffd400" strokeWidth={2} dot={false} isAnimationActive={false} />
+            <Tooltip content={<ChartTooltip unit={` ${t("units.mpsShort")}`} />} />
+            <Line type="monotone" dataKey="WindSpeed" name={t("weather.windSpeed")} stroke="#ffd400" strokeWidth={2} dot={false} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -140,7 +141,7 @@ export default function WeatherCharts({ points, laps }) {
       {pace.length > 0 && (
         <div>
           <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-            Медіанний темп поля <span className="text-(--color-text-dim) normal-case">— зіставити з погодою вище</span>
+            {t("weather.fieldPace")} <span className="text-(--color-text-dim) normal-case">— {t("weather.comparePace")}</span>
           </h4>
           <ResponsiveContainer width="100%" height={160}>
             <LineChart data={pace} syncId="weather" syncMethod="value" margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
@@ -148,7 +149,7 @@ export default function WeatherCharts({ points, laps }) {
               <XAxis dataKey="Time" tickFormatter={formatClock} {...axisProps()} />
               <YAxis reversed width={56} domain={timeDomain} tickFormatter={formatLapTime} {...axisProps()} />
               <Tooltip content={<ChartTooltip formatter={formatLapTime} />} />
-              <Line type="monotone" dataKey="pace" name="Медіана поля" stroke="var(--color-accent)" strokeWidth={2} dot={false} isAnimationActive={false} />
+              <Line type="monotone" dataKey="pace" name={t("charts.fieldMedian")} stroke="var(--color-accent)" strokeWidth={2} dot={false} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>

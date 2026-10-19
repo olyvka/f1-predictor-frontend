@@ -1,3 +1,5 @@
+import i18n from "../i18n";
+
 // Базова адреса бекенду. Для локальної розробки - .env файл (VITE_API_URL),
 // для продакшну - змінна середовища на хостингу (Vercel/Netlify).
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -39,17 +41,22 @@ async function fetchJson(path, timeoutMs) {
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let res;
   try {
-    res = await fetch(`${API_URL}${path}`, { signal: controller.signal });
+    // Мова інтерфейсу — бекенд повертає тексти (помилки, примітки й підписи
+    // прогнозу) тією ж мовою.
+    res = await fetch(`${API_URL}${path}`, {
+      signal: controller.signal,
+      headers: { "Accept-Language": i18n.language },
+    });
   } catch (e) {
     const ms = Math.round(performance.now() - startedAt);
     if (e.name === "AbortError") {
       logDone(path, ms, "timeout");
       throw new Error(
-        `Запит триває надто довго (понад ${Math.round(timeoutMs / 60000)} хв). Спробуй ще раз — повторний запит буде швидшим (дані кешуються на сервері).`
+        i18n.t("errors.timeout", { minutes: Math.round(timeoutMs / 60000) })
       );
     }
     logDone(path, ms, "network-error");
-    throw new Error("Не вдалося звʼязатися з сервером.");
+    throw new Error(i18n.t("errors.network"));
   } finally {
     clearTimeout(timer);
   }
@@ -57,29 +64,38 @@ async function fetchJson(path, timeoutMs) {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     logDone(path, ms, `http-${res.status}`);
-    throw new Error(body.detail || `Request failed: ${res.status}`);
+    throw new Error(body.detail || i18n.t("errors.http", { status: res.status }));
   }
   logDone(path, ms, "ok");
   return res.json();
 }
 
+// Відповіді, що містять тексти, кешуємо окремо для кожної мови; решта
+// (кола, результати, статистика) від мови не залежить — кеш спільний.
+const LANGUAGE_DEPENDENT = ["/api/analysis/"];
+
+function cacheKey(path) {
+  return LANGUAGE_DEPENDENT.some((prefix) => path.startsWith(prefix)) ? `${i18n.language}|${path}` : path;
+}
+
 async function request(path, timeoutMs = REQUEST_TIMEOUT_MS) {
-  if (cache.has(path)) {
+  const key = cacheKey(path);
+  if (cache.has(key)) {
     console.log(`%c• ${path} — з кешу браузера, без мережі`, "color:#f5c518");
-    return cache.get(path);
+    return cache.get(key);
   }
-  if (inFlight.has(path)) return inFlight.get(path);
+  if (inFlight.has(key)) return inFlight.get(key);
 
   const promise = fetchJson(path, timeoutMs)
     .then((data) => {
-      cache.set(path, data); // кешуємо лише успіх — помилку/таймаут завжди можна повторити
+      cache.set(key, data); // кешуємо лише успіх — помилку/таймаут завжди можна повторити
       return data;
     })
     .finally(() => {
-      inFlight.delete(path);
+      inFlight.delete(key);
     });
 
-  inFlight.set(path, promise);
+  inFlight.set(key, promise);
   return promise;
 }
 
@@ -144,7 +160,7 @@ export const api = {
     const basePath = `/api/analysis/${year}/${round}`;
     if (!refresh) return request(basePath, ANALYSIS_TIMEOUT_MS);
     return fetchJson(`${basePath}?refresh=true`, ANALYSIS_TIMEOUT_MS).then((data) => {
-      cache.set(basePath, data);
+      cache.set(cacheKey(basePath), data);
       return data;
     });
   },

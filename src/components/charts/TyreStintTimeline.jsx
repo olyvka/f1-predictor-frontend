@@ -1,5 +1,6 @@
 import { TYRE_COLORS, tyreColor } from "../../utils/constants";
 import TyreBadge from "../results/TyreBadge";
+import { t } from "../../i18n";
 
 // rows: [{ label, stints: [{ compound, first_lap, last_lap }] }]
 // Кожен стінт — сегмент шириною last_lap - first_lap + 1, кольором за
@@ -16,7 +17,7 @@ export default function TyreStintTimeline({ rows, totalLaps }) {
           <div className="flex-1 h-5 rounded overflow-hidden flex bg-(--color-line)">
             {row.stints.length === 0 ? (
               <div className="w-full h-full flex items-center justify-center text-[11px] text-(--color-text-dim)">
-                немає даних
+                {t("tyres.noData")}
               </div>
             ) : (
               row.stints.map((s, i) => {
@@ -25,7 +26,7 @@ export default function TyreStintTimeline({ rows, totalLaps }) {
                 return (
                   <div
                     key={i}
-                    title={`${s.compound || "?"} · ${laps} кіл`}
+                    title={`${s.compound || "?"} · ${t("units.laps", { count: laps })}`}
                     className="h-full flex items-center justify-center text-[11px] font-semibold text-black/70 border-r border-(--color-bg) last:border-r-0"
                     style={{ width: `${widthPct}%`, background: tyreColor(s.compound) }}
                   >

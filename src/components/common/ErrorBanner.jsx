@@ -1,3 +1,5 @@
+import { t } from "../../i18n";
+
 // Бекенд завжди повертає помилки як {"detail": "..."} — показуємо цей
 // текст користувачу напряму, а не generic "Сталася помилка". `onRetry`
 // (якщо переданий) додає кнопку, щоб не залишати користувача в глухому
@@ -10,7 +12,7 @@ export default function ErrorBanner({ message, onRetry }) {
       style={{ borderLeft: "3px solid var(--color-danger)" }}
     >
       <div>
-        <p className="text-[11px] uppercase tracking-widest font-bold text-(--color-danger) mb-0.5">Помилка</p>
+        <p className="text-[11px] uppercase tracking-widest font-bold text-(--color-danger) mb-0.5">{t("error.title")}</p>
         <p className="text-sm text-(--color-text)">{message}</p>
       </div>
       {onRetry && (
@@ -18,7 +20,7 @@ export default function ErrorBanner({ message, onRetry }) {
           onClick={onRetry}
           className="shrink-0 text-xs uppercase tracking-wide font-semibold px-3 py-1.5 rounded-md border border-(--color-line) text-(--color-text-dim) hover:text-(--color-text) hover:border-(--color-danger) transition-colors"
         >
-          Спробувати ще раз
+          {t("error.retry")}
         </button>
       )}
     </div>

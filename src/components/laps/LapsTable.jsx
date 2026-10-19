@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { formatLapTime, formatSector } from "../../utils/time";
 import { decodeTrackStatus } from "../../utils/constants";
 import TyreBadge from "../results/TyreBadge";
+import { t } from "../../i18n";
 
 const PAGE_SIZE = 50;
 
@@ -19,7 +20,7 @@ export default function LapsTable({ laps, showDriver = false }) {
   const pageRows = sorted.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
   if (!laps.length) {
-    return <p className="text-sm text-(--color-text-dim)">Кола відсутні.</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("laps.none")}</p>;
   }
 
   return (
@@ -28,9 +29,9 @@ export default function LapsTable({ laps, showDriver = false }) {
         <table className="w-full text-xs">
           <thead>
             <tr className="text-(--color-text-dim) uppercase tracking-wide">
-              {showDriver && <th className="text-left px-3 py-2 font-medium">Пілот</th>}
-              <th className="text-left px-3 py-2 font-medium">Коло</th>
-              <th className="text-left px-3 py-2 font-medium">Час</th>
+              {showDriver && <th className="text-left px-3 py-2 font-medium">{t("laps.driver")}</th>}
+              <th className="text-left px-3 py-2 font-medium">{t("laps.lap")}</th>
+              <th className="text-left px-3 py-2 font-medium">{t("laps.time")}</th>
               <th className="text-left px-3 py-2 font-medium">S1</th>
               <th className="text-left px-3 py-2 font-medium">S2</th>
               <th className="text-left px-3 py-2 font-medium">S3</th>
@@ -38,10 +39,10 @@ export default function LapsTable({ laps, showDriver = false }) {
               <th className="text-left px-3 py-2 font-medium">SpI2</th>
               <th className="text-left px-3 py-2 font-medium">SpFL</th>
               <th className="text-left px-3 py-2 font-medium">SpST</th>
-              <th className="text-left px-3 py-2 font-medium">Шина</th>
-              <th className="text-left px-3 py-2 font-medium">Життя</th>
-              <th className="text-left px-3 py-2 font-medium">Поз.</th>
-              <th className="text-left px-3 py-2 font-medium">Стан траси</th>
+              <th className="text-left px-3 py-2 font-medium">{t("laps.tyre")}</th>
+              <th className="text-left px-3 py-2 font-medium">{t("laps.tyreLife")}</th>
+              <th className="text-left px-3 py-2 font-medium">{t("laps.position")}</th>
+              <th className="text-left px-3 py-2 font-medium">{t("laps.trackStatus")}</th>
             </tr>
           </thead>
           <tbody className="font-mono-data">
@@ -54,7 +55,7 @@ export default function LapsTable({ laps, showDriver = false }) {
                   className={`border-t border-(--color-line) hover:bg-(--color-surface-hover) transition-colors ${
                     inaccurate ? "opacity-40" : ""
                   }`}
-                  title={deleted ? lap.DeletedReason || "Коло видалено" : undefined}
+                  title={deleted ? lap.DeletedReason || t("laps.deleted") : undefined}
                 >
                   {showDriver && <td className="px-3 py-1.5">{lap.Driver ?? "—"}</td>}
                   <td className="px-3 py-1.5">{lap.LapNumber ?? "—"}</td>
@@ -75,7 +76,7 @@ export default function LapsTable({ laps, showDriver = false }) {
                   <td className="px-3 py-1.5">
                     <span className="inline-flex items-center gap-1.5">
                       <TyreBadge compound={lap.Compound} size={16} />
-                      {lap.FreshTyre === false ? "б/в" : ""}
+                      {lap.FreshTyre === false ? t("laps.used") : ""}
                     </span>
                   </td>
                   <td className="px-3 py-1.5">{lap.TyreLife ?? "—"}</td>
@@ -97,7 +98,7 @@ export default function LapsTable({ laps, showDriver = false }) {
             onClick={() => setPage((p) => p - 1)}
             className="disabled:opacity-30 hover:text-(--color-accent)"
           >
-            ← Попередні
+            ← {t("laps.prev")}
           </button>
           <span>
             {page + 1} / {pageCount}
@@ -107,7 +108,7 @@ export default function LapsTable({ laps, showDriver = false }) {
             onClick={() => setPage((p) => p + 1)}
             className="disabled:opacity-30 hover:text-(--color-accent)"
           >
-            Наступні →
+            {t("laps.next")} →
           </button>
         </div>
       )}

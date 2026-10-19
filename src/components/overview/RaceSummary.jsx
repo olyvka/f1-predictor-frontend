@@ -2,6 +2,7 @@ import { formatLapTime, formatSpeed } from "../../utils/time";
 import { teamHex, retirementLabel } from "../../utils/constants";
 import DriverAvatar from "./DriverAvatar";
 import Section from "./Section";
+import { t } from "../../i18n";
 
 const PLACE_LABELS = { 1: "P1", 2: "P2", 3: "P3" };
 
@@ -43,8 +44,9 @@ function DriverFact({ label, driver, value, hint }) {
 }
 
 function gainerHint(g) {
-  const from = g.pit_lane_start ? "з піт-лейну" : `з P${g.grid}`;
-  return `${from} на P${g.position}`;
+  return g.pit_lane_start
+    ? t("summary.fromPitLane", { position: g.position })
+    : t("summary.fromTo", { grid: g.grid, position: g.position });
 }
 
 // Підсумок однієї гонки (основної чи спринту) — подіум і ключові факти.
@@ -59,33 +61,33 @@ function RaceBlock({ race }) {
 
       <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-start">
         <DriverFact
-          label="Поул"
+          label={t("summary.pole")}
           driver={race.pole}
           value={race.pole?.time != null ? formatLapTime(race.pole.time) : null}
           // У спринту немає окремої кваліфікації в датасеті — це той, хто стартував першим.
-          hint={race.pole && race.pole.time == null ? "стартував першим" : null}
+          hint={race.pole && race.pole.time == null ? t("summary.startedFirst") : null}
         />
         <DriverFact
-          label="Найшвидше коло"
+          label={t("summary.fastestLap")}
           driver={race.fastest_lap}
           value={race.fastest_lap ? formatLapTime(race.fastest_lap.time) : null}
           hint={
             race.fastest_lap
-              ? [`коло ${race.fastest_lap.lap}`, race.fastest_lap.avg_speed && formatSpeed(race.fastest_lap.avg_speed)]
+              ? [t("chart.lapLower", { lap: race.fastest_lap.lap }), race.fastest_lap.avg_speed && formatSpeed(race.fastest_lap.avg_speed)]
                   .filter(Boolean)
                   .join(" · ")
               : null
           }
         />
         <DriverFact
-          label="Герой гонки"
+          label={t("summary.hero")}
           driver={race.biggest_gainer?.gained > 0 ? race.biggest_gainer : null}
           value={race.biggest_gainer ? `+${race.biggest_gainer.gained}` : null}
           hint={race.biggest_gainer ? gainerHint(race.biggest_gainer) : null}
         />
         <div className="flex flex-col min-w-0">
           <span className="text-[11px] uppercase tracking-widest text-(--color-text-dim)">
-            Сходи · {race.dnf_count}
+            {t("summary.dnfs")} · {race.dnf_count}
           </span>
           {race.dnfs.length ? (
             <ul className="text-sm flex flex-col">
@@ -95,13 +97,13 @@ function RaceBlock({ race }) {
                   <span className="text-(--color-text-dim)">
                     {" "}
                     · {retirementLabel(d.status)}
-                    {d.laps != null && `, коло ${d.laps}`}
+                    {d.laps != null && `, ${t("chart.lapLower", { lap: d.laps })}`}
                   </span>
                 </li>
               ))}
             </ul>
           ) : (
-            <span className="text-sm text-(--color-text-dim)">усі фінішували</span>
+            <span className="text-sm text-(--color-text-dim)">{t("summary.allFinished")}</span>
           )}
         </div>
       </div>
@@ -111,12 +113,12 @@ function RaceBlock({ race }) {
 
 export default function RaceSummary({ summary }) {
   return (
-    <Section title={`Підсумок гонки · ${summary.laps} кіл`}>
+    <Section title={`${t("summary.title")} · ${t("units.laps", { count: summary.laps })}`}>
       <RaceBlock race={summary} />
       {summary.sprint && (
         <div className="flex flex-col gap-3 pt-3 border-t border-(--color-line)">
           <h4 className="text-xs uppercase tracking-widest font-semibold text-(--color-text-dim)">
-            Спринт · {summary.sprint.laps} кіл
+            {t("summary.sprint")} · {t("units.laps", { count: summary.sprint.laps })}
           </h4>
           <RaceBlock race={summary.sprint} />
         </div>

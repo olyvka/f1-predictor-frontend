@@ -5,6 +5,7 @@ import Section from "../overview/Section";
 import { SeasonStatus } from "./DriverStandings";
 import PointsProgressChart from "./PointsProgressChart";
 import { seriesColor } from "../../utils/chartColors";
+import { t } from "../../i18n";
 
 const CHART_TOP = 5;
 
@@ -13,7 +14,7 @@ function Contribution({ team, year }) {
   const total = team.drivers.reduce((s, d) => s + d.points, 0);
   // Кольори команд є лише з 2023 — для старших сезонів смужка акцентна.
   const color = team.team_color ? teamHex(team.team_color) : "var(--color-accent)";
-  if (!total) return <span className="text-xs text-(--color-text-dim)">без очок</span>;
+  if (!total) return <span className="text-xs text-(--color-text-dim)">{t("teams.noPoints")}</span>;
   return (
     <div className="flex flex-col gap-1 min-w-0">
       <div className="flex h-2 rounded-full overflow-hidden bg-(--color-line)">
@@ -52,7 +53,7 @@ export default function TeamStandings({ progress, year }) {
     <div className="flex flex-col gap-4">
       <SeasonStatus progress={progress} />
 
-      <Section title="Кубок конструкторів">
+      <Section title={t("teams.title")}>
         <PointsProgressChart rounds={rounds} series={series} />
       </Section>
 
@@ -67,11 +68,11 @@ export default function TeamStandings({ progress, year }) {
             <span className="flex flex-col min-w-0">
               <span className="flex items-center gap-2">
                 <span className="font-semibold truncate">{c.team}</span>
-                {final && c.position === 1 && <Badge tone="good">Чемпіон</Badge>}
+                {final && c.position === 1 && <Badge tone="good">{t("standingsTable.champion")}</Badge>}
               </span>
               <span className="text-xs text-(--color-text-dim) font-mono-data">
-                {c.wins ? `${c.wins} перем. · ` : ""}
-                {c.podiums} подіум.
+                {c.wins ? `${t("teams.wins", { count: c.wins })} · ` : ""}
+                {t("teams.podiums", { count: c.podiums })}
               </span>
             </span>
             <span className="hidden sm:block">

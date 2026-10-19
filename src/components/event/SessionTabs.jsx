@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { isFuture } from "../../utils/format";
+import { t } from "../../i18n";
 
 const pillBase = "px-3 py-1.5 text-xs uppercase tracking-wide rounded-full transition-colors flex items-center gap-1.5";
 const pillActive = "bg-(--color-accent) text-white font-semibold";
@@ -12,7 +13,7 @@ export default function SessionTabs({ sessions }) {
   return (
     <nav className="flex flex-wrap gap-1 bg-(--color-surface) border border-(--color-line) rounded-full p-1">
       <NavLink to="" end className={({ isActive }) => `${pillBase} ${isActive ? pillActive : pillIdle}`}>
-        Огляд
+        {t("tabs.overview")}
       </NavLink>
 
       {sessions.map((s) => {
@@ -22,7 +23,7 @@ export default function SessionTabs({ sessions }) {
             key={s.code}
             to={future ? "#" : s.code}
             onClick={(e) => future && e.preventDefault()}
-            title={future ? "Ще не відбулась" : undefined}
+            title={future ? t("session.notYet") : undefined}
             aria-disabled={future || undefined}
             tabIndex={future ? -1 : undefined}
             className={({ isActive }) =>
@@ -40,7 +41,7 @@ export default function SessionTabs({ sessions }) {
       })}
 
       <NavLink to="analysis" className={({ isActive }) => `${pillBase} ${isActive ? pillActive : pillIdle}`}>
-        Прогноз
+        {t("tabs.prediction")}
       </NavLink>
     </nav>
   );

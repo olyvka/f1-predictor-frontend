@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
+import { t } from "../../i18n";
 
 // Мінімальний інлайн-трейл для верхнього бару (не pill-стрічка) — тьмяний
 // текст, поточна сторінка виділена білим/жирним. items: [{label, to?}].
 export default function Breadcrumb({ items }) {
   if (!items.length) return null;
   return (
-    <nav className="flex items-center gap-1.5 text-xs min-w-0" aria-label="Навігація">
+    <nav className="flex items-center gap-1.5 text-xs min-w-0" aria-label={t("nav.breadcrumb")}>
       {items.map((item, i) => {
         const isLast = i === items.length - 1 || !item.to;
         return (

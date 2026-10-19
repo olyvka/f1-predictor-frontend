@@ -1,4 +1,5 @@
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
+import { t } from "../../i18n";
 
 const TRAPS = [
   { key: "SpeedI1", label: "I1" },
@@ -26,9 +27,9 @@ function ChartTooltip({ active, payload, color }) {
   return (
     <div className="bg-(--color-surface) border border-(--color-line) rounded-md px-3 py-2 text-xs font-mono-data">
       <p style={{ color }}>
-        {trap}: {Math.round(value)} км/год
+        {trap}: {t("units.kph", { value: Math.round(value) })}
       </p>
-      {lap != null && <p className="text-(--color-text-dim)">коло {lap}</p>}
+      {lap != null && <p className="text-(--color-text-dim)">{t("chart.lapLower", { lap })}</p>}
     </div>
   );
 }
@@ -37,7 +38,7 @@ export default function SpeedTrapChart({ laps, color = "var(--color-accent)", he
   const data = buildData(laps);
 
   if (!data.length) {
-    return <p className="text-sm text-(--color-text-dim)">Немає даних про швидкість.</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("chart.noSpeed")}</p>;
   }
 
   return (

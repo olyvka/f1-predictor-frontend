@@ -2,6 +2,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Ca
 import { formatLapTime } from "../../utils/time";
 import { tyreColor } from "../../utils/constants";
 import { timeDomain } from "../../utils/chartAxis";
+import { t } from "../../i18n";
 
 // laps: кола одного пілота — групуємо за Stint, вісь X — TyreLife (вік
 // шини в колах), а не номер кола, щоб порівняти нахил "сідання" різних
@@ -37,14 +38,14 @@ function ChartTooltip({ active, payload, label, stints }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-(--color-surface) border border-(--color-line) rounded-md px-3 py-2 text-xs font-mono-data">
-      <p className="text-(--color-text-dim) mb-1">Вік шини: {label} к.</p>
+      <p className="text-(--color-text-dim) mb-1">{t("charts.tyreAge", { laps: label })}</p>
       {payload
         .filter((p) => p.value != null)
         .map((p) => {
           const stint = stints.find((s) => `stint${s.stint}` === p.dataKey);
           return (
             <p key={p.dataKey} style={{ color: p.color }}>
-              Стінт {stint?.stint} ({stint?.compound}): {formatLapTime(p.value)}
+              {t("charts.stintN", { stint: stint?.stint })} ({stint?.compound}): {formatLapTime(p.value)}
             </p>
           );
         })}
@@ -57,7 +58,7 @@ export default function TyreDegradationChart({ laps, height = 260 }) {
   const data = buildMergedData(stints);
 
   if (!stints.length) {
-    return <p className="text-sm text-(--color-text-dim)">Недостатньо даних для кривої деградації.</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("charts.noDegradation")}</p>;
   }
 
   return (
@@ -68,7 +69,7 @@ export default function TyreDegradationChart({ laps, height = 260 }) {
           dataKey="TyreLife"
           stroke="var(--color-text-dim)"
           tick={{ fill: "var(--color-text-dim)", fontSize: 11 }}
-          label={{ value: "Вік шини (кола)", position: "insideBottom", offset: -2, fill: "var(--color-text-dim)", fontSize: 11 }}
+          label={{ value: t("charts.tyreAgeAxis"), position: "insideBottom", offset: -2, fill: "var(--color-text-dim)", fontSize: 11 }}
         />
         <YAxis
           reversed
@@ -81,7 +82,7 @@ export default function TyreDegradationChart({ laps, height = 260 }) {
         <Tooltip content={<ChartTooltip stints={stints} />} />
         <Legend
           wrapperStyle={{ fontSize: 12 }}
-          payload={stints.map((s) => ({ value: `Стінт ${s.stint} — ${s.compound}`, type: "line", color: tyreColor(s.compound) }))}
+          payload={stints.map((s) => ({ value: `${t("charts.stintN", { stint: s.stint })} — ${s.compound}`, type: "line", color: tyreColor(s.compound) }))}
         />
         {stints.map((s) => (
           <Line

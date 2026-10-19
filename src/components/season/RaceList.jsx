@@ -4,6 +4,7 @@ import { countryFlag } from "../../utils/flags";
 import { useNow } from "../../hooks/useNow";
 import CircuitMap from "../circuit/CircuitMap";
 import DriverAvatar from "../overview/DriverAvatar";
+import { t } from "../../i18n";
 
 // Заглушка там, де контуру траси немає (нові траси, яких ще немає в
 // MultiViewer) — щоб рядок не мав порожньої дірки.
@@ -21,10 +22,10 @@ function CircuitPlaceholder() {
 function RowStatus({ race, state, winner, now }) {
   if (state === "past") {
     if (!winner) {
-      return <span className="text-xs text-(--color-text-dim)">результати очікуються</span>;
+      return <span className="text-xs text-(--color-text-dim)">{t("raceList.resultsPending")}</span>;
     }
     return (
-      <span className="flex items-center gap-2" title={`Переможець: ${winner.full_name}`}>
+      <span className="flex items-center gap-2" title={t("raceList.winner", { name: winner.full_name })}>
         <DriverAvatar driver={winner} size={26} />
         <span className="font-mono-data text-sm font-semibold w-9">{winner.code || winner.full_name.split(" ").pop()}</span>
       </span>
@@ -34,22 +35,22 @@ function RowStatus({ race, state, winner, now }) {
     const nextSession = raceSessions(race).find((s) => s.at.getTime() > now);
     return (
       <span className="flex flex-col items-end gap-0.5">
-        <span className="text-[10px] uppercase tracking-widest font-bold text-(--color-accent)">Наступний</span>
+        <span className="text-[10px] uppercase tracking-widest font-bold text-(--color-accent)">{t("raceList.next")}</span>
         <span className="text-xs font-mono-data text-(--color-text-dim)">
-          {nextSession ? `${nextSession.code} ${shortCountdown(nextSession.at.getTime() - now)}` : "триває"}
+          {nextSession ? `${nextSession.code} ${shortCountdown(nextSession.at.getTime() - now)}` : t("raceList.ongoing")}
         </span>
       </span>
     );
   }
   const start = raceStartTime(race);
-  return start ? <span className="text-xs font-mono-data text-(--color-text-dim)">гонка {start}</span> : null;
+  return start ? <span className="text-xs font-mono-data text-(--color-text-dim)">{t("raceList.raceAt", { time: start })}</span> : null;
 }
 
 export default function RaceList({ year, races, circuits = {}, winners = new Map(), nextRound }) {
   const now = useNow(60_000);
 
   if (!races.length) {
-    return <p className="text-(--color-text-dim) text-sm px-1">Немає гонок для цього сезону.</p>;
+    return <p className="text-(--color-text-dim) text-sm px-1">{t("raceList.none")}</p>;
   }
 
   return (
@@ -91,7 +92,7 @@ export default function RaceList({ year, races, circuits = {}, winners = new Map
                   </span>
                   {isSprint && (
                     <span className="shrink-0 text-[10px] uppercase tracking-wider font-semibold px-1.5 py-px rounded border border-(--color-line) text-(--color-text-dim)">
-                      Спринт
+                      {t("summary.sprint")}
                     </span>
                   )}
                 </span>

@@ -1,4 +1,5 @@
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { t } from "../../i18n";
 
 // importance — сира вага з моделі (XGBoost gain/split-count тощо), шкала
 // довільна й не нормована до 0..1 (бачили як 35, так і 304) — форматуємо
@@ -13,7 +14,7 @@ function formatImportance(v) {
 export default function FeatureImportanceChart({ data, height }) {
   const sorted = [...(data || [])].sort((a, b) => b.importance - a.importance);
   if (!sorted.length) {
-    return <p className="text-sm text-(--color-text-dim)">Дані про важливість ознак відсутні.</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("chart.noFeatures")}</p>;
   }
 
   const chartHeight = height || Math.max(120, 28 * sorted.length);

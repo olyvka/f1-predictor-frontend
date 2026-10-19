@@ -1,4 +1,5 @@
 import { ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { t } from "../../i18n";
 
 // pitStops: [{code, lap, stop, duration, time_of_day}], order: [code, ...]
 // у бажаному порядку рядків (звично — за фінішною позицією). Один рядок
@@ -10,19 +11,19 @@ function ChartTooltip({ active, payload }) {
   return (
     <div className="bg-(--color-surface) border border-(--color-line) rounded-md px-3 py-2 text-xs font-mono-data">
       <p className="font-semibold">
-        {code} · стоп №{stop}
+        {code} · {t("charts.stopN", { stop })}
       </p>
       <p className="text-(--color-text-dim)">
-        коло {lap} · {time_of_day}
+        {t("chart.lapLower", { lap })} · {time_of_day}
       </p>
-      <p className="text-(--color-accent) font-semibold">{duration.toFixed(3)}с</p>
+      <p className="text-(--color-accent) font-semibold">{t("units.seconds", { value: duration.toFixed(3) })}</p>
     </div>
   );
 }
 
 export default function PitStopTimeline({ pitStops, order, height }) {
   if (!pitStops?.length || !order?.length) {
-    return <p className="text-sm text-(--color-text-dim)">Піт-стопів немає.</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("charts.noPitStops")}</p>;
   }
 
   const durations = pitStops.map((p) => p.duration);
@@ -43,7 +44,7 @@ export default function PitStopTimeline({ pitStops, order, height }) {
           allowDecimals={false}
           stroke="var(--color-text-dim)"
           tick={{ fill: "var(--color-text-dim)", fontSize: 11 }}
-          label={{ value: "Коло", position: "insideBottom", offset: -4, fill: "var(--color-text-dim)", fontSize: 11 }}
+          label={{ value: t("chart.lap"), position: "insideBottom", offset: -4, fill: "var(--color-text-dim)", fontSize: 11 }}
         />
         <YAxis
           type="category"

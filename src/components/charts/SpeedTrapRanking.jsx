@@ -1,4 +1,5 @@
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
+import { t } from "../../i18n";
 
 // laps — усе поле; рейтинг за максимальною SpeedST (класичний "спідтрап"
 // з трансляцій), SpeedFL — довідково в підказці.
@@ -22,8 +23,8 @@ function ChartTooltip({ active, payload }) {
   return (
     <div className="bg-(--color-surface) border border-(--color-line) rounded-md px-3 py-2 text-xs font-mono-data">
       <p className="font-semibold">{code}</p>
-      <p>ST: {Math.round(st)} км/год</p>
-      <p className="text-(--color-text-dim)">FL: {Math.round(fl)} км/год</p>
+      <p>ST: {t("units.kph", { value: Math.round(st) })}</p>
+      <p className="text-(--color-text-dim)">FL: {t("units.kph", { value: Math.round(fl) })}</p>
     </div>
   );
 }
@@ -31,7 +32,7 @@ function ChartTooltip({ active, payload }) {
 export default function SpeedTrapRanking({ laps, colorByCode, height }) {
   const data = buildData(laps);
   if (!data.length) {
-    return <p className="text-sm text-(--color-text-dim)">Немає даних про швидкість.</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("chart.noSpeed")}</p>;
   }
 
   const chartHeight = height || Math.max(160, 28 * data.length);

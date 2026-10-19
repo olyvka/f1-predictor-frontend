@@ -1,4 +1,5 @@
 import Section from "./Section";
+import { t } from "../../i18n";
 
 // Прогноз моделі на подіум проти факту. Статус лише читає кеш бекенду —
 // якщо прогноз ще не рахували (перший розрахунок тренує модель і триває
@@ -8,9 +9,9 @@ export default function PredictionCheck({ status }) {
 
   if (!status.ready) {
     return (
-      <Section title="Прогноз моделі" action={{ to: "analysis", label: "Порахувати" }}>
+      <Section title={t("predictionCheck.title")} action={{ to: "analysis", label: t("predictionCheck.compute") }}>
         <p className="text-sm text-(--color-text-dim)">
-          Прогноз для цього етапу ще не рахували. Перший розрахунок тренує модель і може тривати кілька хвилин.
+          {t("predictionCheck.notReady")}
         </p>
       </Section>
     );
@@ -19,11 +20,11 @@ export default function PredictionCheck({ status }) {
   const hasActuals = status.top3.some((p) => p.actual_position != null);
 
   return (
-    <Section title="Прогноз моделі на подіум" action={{ to: "analysis", label: "Детальніше" }}>
+    <Section title={t("predictionCheck.podiumTitle")} action={{ to: "analysis", label: t("predictionCheck.details") }}>
       {hasActuals && status.hits != null && (
         <p className="text-sm">
           <span className="font-mono-data text-2xl font-bold text-(--color-accent)">{status.hits}/3</span>
-          <span className="text-(--color-text-dim)"> прогнозованих пілотів фінішували в топ-3</span>
+          <span className="text-(--color-text-dim)"> {t("predictionCheck.hits")}</span>
         </p>
       )}
       <ol className="flex flex-col text-sm">
@@ -42,9 +43,9 @@ export default function PredictionCheck({ status }) {
               {hasActuals && (
                 <span
                   className={`font-mono-data shrink-0 ${hit ? "text-(--color-good) font-semibold" : "text-(--color-text-dim)"}`}
-                  title="Фактична позиція"
+                  title={t("predictionCheck.actual")}
                 >
-                  {p.actual_position != null ? `факт P${p.actual_position}` : "сход"}
+                  {p.actual_position != null ? t("predictionCheck.actualP", { position: p.actual_position }) : t("form.dnf")}
                   {hit && " ✓"}
                 </span>
               )}

@@ -1,4 +1,5 @@
 import { ResponsiveContainer, ComposedChart, Line, Scatter, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { t } from "../../i18n";
 
 // Старт і фініш на кожному етапі сезону: видно, де пілот виграє позиції в
 // гонці, а де втрачає. Сходи — окремими хрестиками внизу графіка.
@@ -8,10 +9,10 @@ function ChartTooltip({ active, payload }) {
   return (
     <div className="bg-(--color-surface) border border-(--color-line) rounded-md px-3 py-2 text-xs">
       <p className="text-(--color-text-dim) mb-1">
-        Етап {r.round} · {r.name}
+        {t("chart.roundN", { round: r.round })} · {r.name}
       </p>
-      <p className="font-mono-data">Старт: {r.grid ? `P${r.grid}` : "піт-лейн"}</p>
-      <p className="font-mono-data">Фініш: {r.label === "DNF" || r.label === "DSQ" ? r.label : `P${r.label}`}</p>
+      <p className="font-mono-data">{t("charts.start")}: {r.grid ? `P${r.grid}` : t("resultsChart.pitLane")}</p>
+      <p className="font-mono-data">{t("charts.finish")}: {r.label === "DNF" || r.label === "DSQ" ? r.label : `P${r.label}`}</p>
     </div>
   );
 }
@@ -61,15 +62,15 @@ export default function SeasonResultsChart({ races, height = 260 }) {
           <svg width="16" height="6" aria-hidden="true">
             <line x1="0" y1="3" x2="16" y2="3" stroke="var(--color-text-dim)" strokeWidth="1.5" strokeDasharray="4 2" />
           </svg>
-          Старт
+          {t("charts.start")}
         </span>
         <span className="inline-flex items-center gap-1.5">
           <svg width="16" height="6" aria-hidden="true">
             <line x1="0" y1="3" x2="16" y2="3" stroke="var(--color-accent)" strokeWidth="2" />
           </svg>
-          Фініш
+          {t("charts.finish")}
         </span>
-        <span className="inline-flex items-center gap-1.5 text-(--color-danger)">✕ Схід</span>
+        <span className="inline-flex items-center gap-1.5 text-(--color-danger)">✕ {t("resultsChart.dnf")}</span>
       </div>
     </div>
   );

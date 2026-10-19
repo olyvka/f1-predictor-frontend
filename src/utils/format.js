@@ -1,17 +1,23 @@
-// Дати з бекенду — ISO-рядки без адаптації під часовий пояс користувача;
-// конвертація в локальний час виконується тут через Intl. Мова — українська,
-// як і весь інтерфейс (часовий пояс лишається користувача).
+import i18n, { intlLocale } from "../i18n";
 
-const dateTimeFormatter = new Intl.DateTimeFormat("uk-UA", {
-  dateStyle: "medium",
-  timeStyle: "short",
-});
+// Дати з бекенду — ISO-рядки без адаптації під часовий пояс користувача;
+// конвертація в локальний час виконується тут через Intl — мовою інтерфейсу
+// (часовий пояс лишається користувача). Форматери кешуються на пару
+// (мова, опції): створювати Intl.DateTimeFormat на кожен рядок дорого.
+const formatters = new Map();
+export function dateFormatter(options) {
+  const key = `${intlLocale()}|${JSON.stringify(options)}`;
+  if (!formatters.has(key)) formatters.set(key, new Intl.DateTimeFormat(intlLocale(), options));
+  return formatters.get(key);
+}
+
+const DATE_TIME = { dateStyle: "medium", timeStyle: "short" };
 
 export function formatDateTime(iso) {
   if (!iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
-  return dateTimeFormatter.format(d);
+  return dateFormatter(DATE_TIME).format(d);
 }
 
 export function isFuture(iso) {
@@ -106,9 +112,9 @@ export function raceSessions(race) {
     .sort((a, b) => a.at - b.at);
 }
 
-const dayMonth = new Intl.DateTimeFormat("uk-UA", { day: "numeric", month: "short" });
-const dayOnly = new Intl.DateTimeFormat("uk-UA", { day: "numeric" });
-const timeOnly = new Intl.DateTimeFormat("uk-UA", { hour: "2-digit", minute: "2-digit" });
+const DAY_MONTH = { day: "numeric", month: "short" };
+const DAY_ONLY = { day: "numeric" };
+const TIME_ONLY = { hour: "2-digit", minute: "2-digit" };
 
 /**
  * Дати вікенду: "23–25 жовт." або "30 жовт. – 1 лист.". EventDate з бекенду —
@@ -119,26 +125,26 @@ export function weekendRange(race) {
   const sessions = raceSessions(race);
   if (!sessions.length) {
     const d = new Date(race.EventDate);
-    return Number.isNaN(d.getTime()) ? "—" : dayMonth.format(d);
+    return Number.isNaN(d.getTime()) ? "—" : dateFormatter(DAY_MONTH).format(d);
   }
   const first = sessions[0].at;
   const last = sessions[sessions.length - 1].at;
-  if (first.toDateString() === last.toDateString()) return dayMonth.format(last);
-  if (first.getMonth() === last.getMonth()) return `${dayOnly.format(first)}–${dayMonth.format(last)}`;
-  return `${dayMonth.format(first)} – ${dayMonth.format(last)}`;
+  if (first.toDateString() === last.toDateString()) return dateFormatter(DAY_MONTH).format(last);
+  if (first.getMonth() === last.getMonth()) return `${dateFormatter(DAY_ONLY).format(first)}–${dateFormatter(DAY_MONTH).format(last)}`;
+  return `${dateFormatter(DAY_MONTH).format(first)} – ${dateFormatter(DAY_MONTH).format(last)}`;
 }
 
 /** Час старту гонки в часовому поясі користувача ("21:00") або null. */
 export function raceStartTime(race) {
   const r = raceSessions(race).find((s) => s.code === "R");
-  return r ? timeOnly.format(r.at) : null;
+  return r ? dateFormatter(TIME_ONLY).format(r.at) : null;
 }
 
-/** "через 3 дн." / "через 5 год" / "зараз" — короткий відлік для списків. */
+/** "через 3 дн." / "in 3 days" — короткий відлік для списків, мовою інтерфейсу. */
 export function shortCountdown(ms) {
-  if (ms <= 0) return "зараз";
+  if (ms <= 0) return i18n.t("countdown.now");
   const { days, hours, minutes } = splitDuration(ms);
-  if (days > 0) return `через ${days} дн.`;
-  if (hours > 0) return `через ${hours} год`;
-  return `через ${minutes} хв`;
+  if (days > 0) return i18n.t("countdown.days", { count: days });
+  if (hours > 0) return i18n.t("countdown.hours", { count: hours });
+  return i18n.t("countdown.minutes", { count: minutes });
 }

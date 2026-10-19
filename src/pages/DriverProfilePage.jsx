@@ -12,6 +12,7 @@ import Section from "../components/overview/Section";
 import RatingCard from "../components/driver/RatingCard";
 import TeammateDuel from "../components/driver/TeammateDuel";
 import SeasonResultsChart from "../components/driver/SeasonResultsChart";
+import { t } from "../i18n";
 
 const th = "text-left px-3 py-2 font-medium whitespace-nowrap";
 const td = "px-3 py-2 whitespace-nowrap";
@@ -28,15 +29,15 @@ function SeasonRaces({ season, year }) {
       <table className="w-full text-sm">
         <thead className="bg-(--color-surface) text-(--color-text-dim) text-xs uppercase tracking-wide">
           <tr>
-            <th className={th}>Етап</th>
-            <th className={th}>Гран-прі</th>
-            <th className={`${th} text-right`}>Квалі</th>
-            <th className={`${th} text-right`}>Старт</th>
-            <th className={`${th} text-right`}>Фініш</th>
-            <th className={`${th} text-right`}>Очки</th>
-            <th className={`${th} text-right hidden sm:table-cell`}>Спринт</th>
-            <th className={`${th} text-right hidden sm:table-cell`} title="Місце в чемпіонаті після етапу">
-              Чемп.
+            <th className={th}>{t("chart.round")}</th>
+            <th className={th}>{t("profile.gp")}</th>
+            <th className={`${th} text-right`}>{t("eventCtx.quali")}</th>
+            <th className={`${th} text-right`}>{t("charts.start")}</th>
+            <th className={`${th} text-right`}>{t("charts.finish")}</th>
+            <th className={`${th} text-right`}>{t("standingsTable.points")}</th>
+            <th className={`${th} text-right hidden sm:table-cell`}>{t("summary.sprint")}</th>
+            <th className={`${th} text-right hidden sm:table-cell`} title={t("profile.champAfterHint")}>
+              {t("profile.champAfter")}
             </th>
           </tr>
         </thead>
@@ -54,7 +55,7 @@ function SeasonRaces({ season, year }) {
                 {season.teams.length > 1 && <span className="text-xs text-(--color-text-dim)"> · {r.team}</span>}
               </td>
               <td className={`${td} text-right`}>{r.quali_position ?? "—"}</td>
-              <td className={`${td} text-right`}>{r.grid ? r.grid : "піт"}</td>
+              <td className={`${td} text-right`}>{r.grid ? r.grid : t("profile.pit")}</td>
               <td className={`${td} text-right ${resultTone(r.label)}`} title={r.label === "DNF" ? retirementLabel(r.status) : undefined}>
                 {r.label === "DNF" ? `DNF · ${retirementLabel(r.status)}` : r.label}
               </td>
@@ -72,35 +73,35 @@ function SeasonRaces({ season, year }) {
 }
 
 function Career({ career, year }) {
-  const t = career.totals;
+  const tot = career.totals;
   return (
-    <Section title="Кар'єра">
+    <Section title={t("profile.career")}>
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
-        <StatTile label="Титули" value={t.titles} accent={t.titles > 0} />
-        <StatTile label="Сезони" value={t.seasons} />
-        <StatTile label="Старти" value={t.starts} />
-        <StatTile label="Перемоги" value={t.wins} />
-        <StatTile label="Подіуми" value={t.podiums} />
-        <StatTile label="1-й у квалі" value={t.poles} />
-        <StatTile label="Найшв. кола" value={t.fastest_laps ?? "—"} hint={t.fastest_laps == null ? "дані з 2004" : null} />
-        <StatTile label="Очки" value={t.points} />
+        <StatTile label={t("profile.titles")} value={tot.titles} accent={tot.titles > 0} />
+        <StatTile label={t("profile.seasons")} value={tot.seasons} />
+        <StatTile label={t("profile.starts")} value={tot.starts} />
+        <StatTile label={t("standingsTable.winsFull")} value={tot.wins} />
+        <StatTile label={t("standingsTable.podiums")} value={tot.podiums} />
+        <StatTile label={t("standingsTable.qualiFirst")} value={tot.poles} />
+        <StatTile label={t("profile.fastestLaps")} value={tot.fastest_laps ?? "—"} hint={tot.fastest_laps == null ? t("profile.since2004") : null} />
+        <StatTile label={t("standingsTable.points")} value={tot.points} />
       </div>
       <p className="text-sm text-(--color-text-dim)">
-        Дебют: {career.debut.name} {career.debut.year} · команди: {career.teams.join(", ")}
+        {t("profile.debut", { name: career.debut.name, year: career.debut.year, teams: career.teams.join(", ") })}
         {career.best_season &&
-          ` · найкращий сезон: ${career.best_season.year} (P${career.best_season.position}, ${career.best_season.points} очк.)`}
+          ` · ${t("profile.bestSeason", { year: career.best_season.year, position: career.best_season.position, points: career.best_season.points })}`}
       </p>
       <div className="border border-(--color-line) rounded-md overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-(--color-surface) text-(--color-text-dim) text-xs uppercase tracking-wide">
             <tr>
-              <th className={th}>Сезон</th>
-              <th className={th}>Команда</th>
-              <th className={`${th} text-right`}>Місце</th>
-              <th className={`${th} text-right`}>Очки</th>
-              <th className={`${th} text-right`}>Перем.</th>
-              <th className={`${th} text-right hidden sm:table-cell`}>Подіуми</th>
-              <th className={`${th} text-right hidden sm:table-cell`}>Старти</th>
+              <th className={th}>{t("season.title")}</th>
+              <th className={th}>{t("profile.team")}</th>
+              <th className={`${th} text-right`}>{t("profile.place")}</th>
+              <th className={`${th} text-right`}>{t("standingsTable.points")}</th>
+              <th className={`${th} text-right`}>{t("standingsTable.wins")}</th>
+              <th className={`${th} text-right hidden sm:table-cell`}>{t("standingsTable.podiums")}</th>
+              <th className={`${th} text-right hidden sm:table-cell`}>{t("profile.starts")}</th>
             </tr>
           </thead>
           <tbody className="font-mono-data">
@@ -131,7 +132,7 @@ function Career({ career, year }) {
         </table>
       </div>
       {career.seasons.some((s) => !s.final) && (
-        <p className="text-[11px] text-(--color-text-dim)">* сезон ще триває</p>
+        <p className="text-[11px] text-(--color-text-dim)">* {t("profile.ongoing")}</p>
       )}
     </Section>
   );
@@ -153,7 +154,7 @@ export default function DriverProfilePage() {
     [year, driverRef, s?.full_name]
   );
 
-  if (season.loading && !s) return <Loader label="Завантажуємо профіль пілота…" />;
+  if (season.loading && !s) return <Loader label={t("profile.loading")} />;
   if (season.error) return <ErrorBanner message={season.error} onRetry={season.refetch} />;
   if (!s) return null;
 
@@ -172,16 +173,16 @@ export default function DriverProfilePage() {
             </h2>
             <p className="text-sm text-(--color-text-dim)">
               {s.teams.join(" → ")} · {nationalityLabel(s.nationality)}
-              {s.age && ` · ${s.age} р.`}
+              {s.age && ` · ${t("profile.age", { count: s.age })}`}
             </p>
             {champ.position && (
               <p className="flex items-center gap-2 text-sm">
                 <span className="font-mono-data font-bold text-(--color-accent)">P{champ.position}</span>
                 <span className="text-(--color-text-dim)">
-                  у чемпіонаті {year} · {champ.points} очк.
+                  {t("profile.inChampionship", { year, points: champ.points })}
                 </span>
                 {champ.position === 1 && career.data?.seasons.find((x) => x.year === Number(year))?.final && (
-                  <Badge tone="good">Чемпіон</Badge>
+                  <Badge tone="good">{t("standingsTable.champion")}</Badge>
                 )}
               </p>
             )}
@@ -190,7 +191,7 @@ export default function DriverProfilePage() {
         <select
           value={year}
           onChange={(e) => navigate(`/${e.target.value}/drivers/${driverRef}`)}
-          aria-label="Сезон"
+          aria-label={t("season.title")}
           className="bg-(--color-surface) border border-(--color-line) rounded-md px-3 py-2 text-sm font-mono-data focus:outline-none focus:border-(--color-accent)"
         >
           {[...s.seasons].reverse().map((y) => (
@@ -202,18 +203,18 @@ export default function DriverProfilePage() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        <StatTile label="Перемоги" value={s.stats.wins} accent={s.stats.wins > 0} />
-        <StatTile label="Подіуми" value={s.stats.podiums} hint={`очки в ${s.stats.points_finishes} з ${s.stats.starts} гонок`} />
-        <StatTile label="1-й у квалі" value={s.stats.poles} hint="перше місце в кваліфікації" />
+        <StatTile label={t("standingsTable.winsFull")} value={s.stats.wins} accent={s.stats.wins > 0} />
+        <StatTile label={t("standingsTable.podiums")} value={s.stats.podiums} hint={t("profile.pointsFinishes", { count: s.stats.points_finishes, total: s.stats.starts })} />
+        <StatTile label={t("standingsTable.qualiFirst")} value={s.stats.poles} hint={t("standingsTable.qualiFirstHint")} />
         <StatTile
-          label="Сходи"
+          label={t("standingsTable.dnfs")}
           value={s.stats.dnfs}
-          hint={s.stats.dnfs ? `аварії/зіткнення: ${s.stats.dnfs_incident}` : "жодного"}
+          hint={s.stats.dnfs ? t("profile.incidents", { count: s.stats.dnfs_incident }) : t("profile.none")}
         />
-        <StatTile label="Найкращий фініш" value={s.stats.best_finish ? `P${s.stats.best_finish}` : "—"} />
-        <StatTile label="Сер. старт" value={s.stats.avg_grid ?? "—"} />
-        <StatTile label="Сер. фініш" value={s.stats.avg_finish ?? "—"} hint="лише фініші" />
-        <StatTile label="Очки у спринтах" value={s.stats.sprint_points} />
+        <StatTile label={t("profile.bestFinish")} value={s.stats.best_finish ? `P${s.stats.best_finish}` : "—"} />
+        <StatTile label={t("profile.avgGrid")} value={s.stats.avg_grid ?? "—"} />
+        <StatTile label={t("profile.avgFinish")} value={s.stats.avg_finish ?? "—"} hint={t("profile.finishesOnly")} />
+        <StatTile label={t("profile.sprintPoints")} value={s.stats.sprint_points} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2 items-start">
@@ -221,7 +222,7 @@ export default function DriverProfilePage() {
         <TeammateDuel driver={s} teammates={s.teammates} year={year} />
       </div>
 
-      <Section title={`Сезон ${year} по етапах`}>
+      <Section title={t("profile.byRound", { year })}>
         <SeasonResultsChart races={s.races} />
         <SeasonRaces season={s} year={year} />
       </Section>

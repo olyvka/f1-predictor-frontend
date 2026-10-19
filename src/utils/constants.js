@@ -1,3 +1,5 @@
+import i18n from "../i18n";
+
 // Розшифровки кодів, яких бекенд не надає (див. розділ 10 техдоку) —
 // власні словники-мапи на фронті.
 
@@ -28,19 +30,14 @@ export function tyreLetter(compound) {
 
 // Коди стану траси (FastF1 `TrackStatus`) — рядок може містити кілька
 // символів одного кола (напр. "24" = жовті + SC одночасно).
-const TRACK_STATUS_LABELS = {
-  1: "Чисто",
-  2: "Жовті прапори",
-  3: "SC (виїзд)",
-  4: "Safety Car",
-  5: "Червоні прапори",
-  6: "VSC",
-  7: "VSC (завершення)",
-};
+// Підписи кодів — у словниках i18n (trackStatus.1…7).
+const TRACK_STATUS_CODES = new Set(["1", "2", "3", "4", "5", "6", "7"]);
 
 export function decodeTrackStatus(status) {
   if (!status) return [];
-  return [...String(status)].map((ch) => TRACK_STATUS_LABELS[ch] || `Код ${ch}`);
+  return [...String(status)].map((ch) =>
+    TRACK_STATUS_CODES.has(ch) ? i18n.t(`trackStatus.${ch}`) : i18n.t("trackStatus.unknown", { code: ch })
+  );
 }
 
 // Стисла категорія для банерів/фону на графіках темпу: найсерйозніший
@@ -60,24 +57,21 @@ export const FLAG_BAND_COLORS = {
   red: "var(--color-danger)",
 };
 
-export const FLAG_BAND_LABELS = {
-  yellow: "Жовті прапори",
-  "safety-car": "Safety Car / VSC",
-  red: "Червоні прапори",
-};
+/** Легенда смуг прапорів на графіках темпу — мовою інтерфейсу. */
+export function flagBandLabels() {
+  return {
+    yellow: i18n.t("flags.yellow"),
+    "safety-car": i18n.t("flags.safetyCar"),
+    red: i18n.t("flags.red"),
+  };
+}
 
-// ClassifiedPosition поза числовими позиціями.
-const CLASSIFIED_POSITION_LABELS = {
-  R: "Сход",
-  D: "Дискваліфікація",
-  W: "Знятий",
-  E: "Виключений",
-  N: "Не класифіковано",
-};
+// ClassifiedPosition поза числовими позиціями (R/D/W/E/N) — у словниках i18n.
+const CLASSIFIED_CODES = new Set(["R", "D", "W", "E", "N"]);
 
 export function classifiedPositionLabel(value) {
   if (value == null || value === "") return "—";
-  return CLASSIFIED_POSITION_LABELS[value] || value;
+  return CLASSIFIED_CODES.has(value) ? i18n.t(`classified.${value}`) : value;
 }
 
 // Фолбеки, коли бекенд не віддав TeamColor (буває для старих сезонів):
@@ -167,6 +161,8 @@ const RETIREMENT_LABELS = {
 };
 
 export function retirementLabel(status) {
+  // Датасет і так англійською — перекладаємо лише для української.
+  if (i18n.language === "en") return status;
   return RETIREMENT_LABELS[status] || status;
 }
 
@@ -213,5 +209,6 @@ const NATIONALITY_LABELS = {
 export function nationalityLabel(nationality) {
   if (!nationality) return null;
   const key = nationality.trim(); // у датасеті трапляється "Argentinian " з пробілом
+  if (i18n.language === "en") return key;
   return NATIONALITY_LABELS[key] || key;
 }

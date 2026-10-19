@@ -10,30 +10,26 @@ import ErrorBanner from "../components/common/ErrorBanner";
 import Loader from "../components/common/Loader";
 import Badge from "../components/common/Badge";
 import StatTile from "../components/common/StatTile";
+import { t } from "../i18n";
 
-const STAGE_LABELS = {
-  not_started: { label: "До кваліфікації", tone: "neutral" },
-  post_quali: { label: "Після кваліфікації", tone: "warn" },
-  completed: { label: "Гонка завершена", tone: "good" },
-};
-
-const SOURCE_LABELS = {
-  static_dataset: "дані з датасету",
-  live_fastf1_quali: "живі дані FastF1 (кваліфікація)",
-  live_no_quali: "живі дані, без кваліфікації",
-};
+// Підписи етапів і джерел — у словниках i18n (analysis.stage.*, analysis.source.*).
+const STAGE_TONES = { not_started: "neutral", post_quali: "warn", completed: "good" };
 
 function StageBadge({ stage }) {
-  const meta = STAGE_LABELS[stage] || { label: stage || "—", tone: "neutral" };
-  return <Badge tone={meta.tone}>{meta.label}</Badge>;
+  if (!STAGE_TONES[stage]) return <Badge tone="neutral">{stage || "—"}</Badge>;
+  return <Badge tone={STAGE_TONES[stage]}>{t(`analysis.stage.${stage}`)}</Badge>;
+}
+
+function sourceLabel(source) {
+  return t(`analysis.source.${source}`, { defaultValue: source });
 }
 
 const METRIC_LABELS = {
   mae_test: "MAE",
   top1: "Top-1",
-  podium_set: "Топ-3 (набір)",
-  top5_set: "Топ-5 (набір)",
-  top10_set: "Топ-10 (набір)",
+  podium_set: "analysis.metric.podium_set",
+  top5_set: "analysis.metric.top5_set",
+  top10_set: "analysis.metric.top10_set",
   spearman_mean: "Spearman",
   ndcg10: "NDCG@10",
   dnf_auc_test: "DNF AUC",
@@ -75,8 +71,8 @@ export default function AnalysisPage() {
   useSetBreadcrumb(
     [
       { label: year, to: `/${year}` },
-      { label: event ? event.EventName : `Етап ${round}`, to: `/${year}/${round}` },
-      { label: "Прогноз" },
+      { label: event ? event.EventName : t("chart.roundN", { round }), to: `/${year}/${round}` },
+      { label: t("tabs.prediction") },
     ],
     [year, round, event?.EventName]
   );
@@ -89,10 +85,10 @@ export default function AnalysisPage() {
   const hasActuals = data?.predictions?.some((p) => p.actual_position != null);
 
   const columns = [
-    { key: "predicted_position", label: "Прогноз" },
-    { key: "driver", label: "Пілот" },
-    { key: "team", label: "Команда" },
-    { key: "quali_position", label: "Квалі" },
+    { key: "predicted_position", label: t("tabs.prediction") },
+    { key: "driver", label: t("standingsTable.driver") },
+    { key: "team", label: t("profile.team") },
+    { key: "quali_position", label: t("eventCtx.quali") },
     {
       key: "p_dnf",
       label: "P(DNF)",
@@ -109,11 +105,11 @@ export default function AnalysisPage() {
       ? [
           {
             key: "actual_position",
-            label: "Факт",
+            label: t("analysis.actual"),
             render: (r) => (
               <span
                 className={r.hit ? "text-(--color-good) font-semibold" : "text-(--color-text)"}
-                title={r.hit ? "Прогноз збігся" : undefined}
+                title={r.hit ? t("analysis.hit") : undefined}
               >
                 {r.actual_position ?? "—"}
                 {r.hit && " ✓"}
@@ -132,11 +128,11 @@ export default function AnalysisPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-lg font-bold uppercase">Прогноз моделі</h2>
+          <h2 className="text-lg font-bold uppercase">{t("predictionCheck.title")}</h2>
           {data?.generated_at && (
             <p className="text-xs text-(--color-text-dim) font-mono-data">
-              Побудовано {formatDateTime(data.generated_at)}
-              {data.data?.source && ` · ${SOURCE_LABELS[data.data.source] || data.data.source}`}
+              {t("analysis.generated", { date: formatDateTime(data.generated_at) })}
+              {data.data?.source && ` · ${sourceLabel(data.data.source)}`}
             </p>
           )}
         </div>
@@ -145,10 +141,10 @@ export default function AnalysisPage() {
           <button
             onClick={handleRefresh}
             disabled={loading}
-            title="Перебудувати прогноз на сервері з найсвіжішими даними (напр. після кваліфікації). Може тривати кілька хвилин."
+            title={t("analysis.refreshHint")}
             className="text-xs uppercase tracking-wide font-semibold px-3 py-1.5 rounded-md border border-(--color-line) text-(--color-text-dim) hover:text-(--color-text) hover:border-(--color-accent) transition-colors disabled:opacity-40"
           >
-            Оновити прогноз
+            {t("analysis.refresh")}
           </button>
         </div>
       </div>
@@ -156,7 +152,7 @@ export default function AnalysisPage() {
       <ErrorBanner message={error} onRetry={refetch} />
 
       {loading ? (
-        <Loader label="Будуємо прогноз… перший запит по цьому етапу тренує модель, це може тривати довше за звичне" />
+        <Loader label={t("analysis.building")} />
       ) : (
         !error &&
         data && (
@@ -176,18 +172,18 @@ export default function AnalysisPage() {
 
             <div>
               <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                Якість моделі {data.model?.version && <span className="text-(--color-text-dim)">({data.model.version})</span>}
+                {t("analysis.quality")} {data.model?.version && <span className="text-(--color-text-dim)">({data.model.version})</span>}
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {curatedMetrics(data.model?.metrics).map(([key, value]) => (
-                  <StatTile key={key} label={METRIC_LABELS[key]} value={formatMetric(value)} />
+                  <StatTile key={key} label={METRIC_LABELS[key].startsWith("analysis.") ? t(METRIC_LABELS[key]) : METRIC_LABELS[key]} value={formatMetric(value)} />
                 ))}
               </div>
             </div>
 
             <div>
-              <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">Прогноз</h3>
-              <ResultsTable rows={sortedPredictions} columns={columns} emptyLabel="Прогнозу немає." />
+              <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">{t("tabs.prediction")}</h3>
+              <ResultsTable rows={sortedPredictions} columns={columns} emptyLabel={t("analysis.empty")} />
             </div>
 
             {(data.feature_importance?.ranker?.length > 0 || data.feature_importance?.dnf_classifier?.length > 0) && (
@@ -195,7 +191,7 @@ export default function AnalysisPage() {
                 {data.feature_importance?.ranker?.length > 0 && (
                   <div>
                     <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                      Важливість ознак — позиція
+                      {t("analysis.importancePosition")}
                     </h3>
                     <FeatureImportanceChart data={data.feature_importance.ranker} />
                   </div>
@@ -203,7 +199,7 @@ export default function AnalysisPage() {
                 {data.feature_importance?.dnf_classifier?.length > 0 && (
                   <div>
                     <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                      Важливість ознак — DNF
+                      {t("analysis.importanceDnf")}
                     </h3>
                     <FeatureImportanceChart data={data.feature_importance.dnf_classifier} />
                   </div>

@@ -24,11 +24,12 @@ import ErrorBanner from "../components/common/ErrorBanner";
 import Loader from "../components/common/Loader";
 import Badge from "../components/common/Badge";
 import { useSetBreadcrumb } from "../hooks/useBreadcrumb";
+import { t } from "../i18n";
 
 function buildColumns(category, year, round, session) {
   const driverCol = {
     key: "Abbreviation",
-    label: "Пілот",
+    label: t("standingsTable.driver"),
     render: (row) => (
       <DriverCell
         code={row.Abbreviation}
@@ -40,13 +41,13 @@ function buildColumns(category, year, round, session) {
   };
   const teamCol = {
     key: "TeamName",
-    label: "Команда",
+    label: t("profile.team"),
     render: (row) => <TeamBadge color={row.TeamColor} name={row.TeamName} />,
   };
 
   if (category === "qualifying") {
     return [
-      { key: "Position", label: "Поз." },
+      { key: "Position", label: t("standingsTable.pos") },
       driverCol,
       teamCol,
       { key: "Q1", label: "Q1", render: (r) => formatLapTime(r.Q1) },
@@ -56,24 +57,24 @@ function buildColumns(category, year, round, session) {
   }
 
   return [
-    { key: "Position", label: "Поз." },
+    { key: "Position", label: t("standingsTable.pos") },
     {
       key: "ClassifiedPosition",
-      label: "Кл.",
+      label: t("sessionPage.classifiedShort"),
       render: (r) => classifiedPositionLabel(r.ClassifiedPosition),
     },
     driverCol,
     teamCol,
-    { key: "GridPosition", label: "Старт" },
+    { key: "GridPosition", label: t("charts.start") },
     {
       key: "delta",
-      label: "Δ старт",
+      label: t("sessionPage.deltaStart"),
       render: (r) => <PositionDelta gridPosition={r.GridPosition} position={r.Position} />,
     },
-    { key: "Laps", label: "Кола" },
-    { key: "Time", label: "Час", render: (r) => formatLapTime(r.Time) },
-    { key: "Points", label: "Очки" },
-    { key: "Status", label: "Статус" },
+    { key: "Laps", label: t("sessionPage.laps") },
+    { key: "Time", label: t("laps.time"), render: (r) => formatLapTime(r.Time) },
+    { key: "Points", label: t("standingsTable.points") },
+    { key: "Status", label: t("sessionPage.status") },
   ];
 }
 
@@ -83,16 +84,16 @@ function buildColumns(category, year, round, session) {
 function buildCsvColumns(category, year, round, session) {
   const driverCol = {
     key: "code",
-    label: "Пілот",
+    label: t("standingsTable.driver"),
     render: (r) => (
       <DriverCell code={r.code} to={`/${year}/${round}/${session}/driver/${r.code}`} />
     ),
   };
-  const teamCol = { key: "team", label: "Команда" };
+  const teamCol = { key: "team", label: t("profile.team") };
 
   if (category === "qualifying") {
     return [
-      { key: "position", label: "Поз." },
+      { key: "position", label: t("standingsTable.pos") },
       driverCol,
       teamCol,
       { key: "q1", label: "Q1", render: (r) => formatLapTime(r.q1) },
@@ -102,28 +103,29 @@ function buildCsvColumns(category, year, round, session) {
   }
 
   return [
-    { key: "position_text", label: "Поз." },
+    { key: "position_text", label: t("standingsTable.pos") },
     driverCol,
     teamCol,
-    { key: "grid", label: "Старт" },
-    { key: "laps", label: "Кола" },
-    { key: "time_display", label: "Час" }, // вже готовий рядок з датасету — без переформатування
+    { key: "grid", label: t("charts.start") },
+    { key: "laps", label: t("sessionPage.laps") },
+    { key: "time_display", label: t("laps.time") }, // вже готовий рядок з датасету — без переформатування
     {
       key: "fastest_lap_time",
-      label: "Найкраще коло",
-      render: (r) => (r.fastest_lap_time != null ? `${formatLapTime(r.fastest_lap_time)} (к.${r.fastest_lap})` : "—"),
+      label: t("sessionPage.bestLap"),
+      render: (r) => (r.fastest_lap_time != null ? `${formatLapTime(r.fastest_lap_time)} (${t("chart.lapLower", { lap: r.fastest_lap })})` : "—"),
     },
-    { key: "points", label: "Очки" },
-    { key: "status", label: "Статус" },
+    { key: "points", label: t("standingsTable.points") },
+    { key: "status", label: t("sessionPage.status") },
   ];
 }
 
-const pitStopColumns = [
-  { key: "lap", label: "Коло" },
-  { key: "code", label: "Пілот" },
-  { key: "stop", label: "Стоп №" },
-  { key: "duration", label: "Тривалість", render: (r) => `${r.duration.toFixed(3)}с` },
-  { key: "time_of_day", label: "Час доби" },
+// Функція, а не константа: підписи мають читатись мовою інтерфейсу на рендері.
+const pitStopColumns = () => [
+  { key: "lap", label: t("laps.lap") },
+  { key: "code", label: t("standingsTable.driver") },
+  { key: "stop", label: t("sessionPage.stopNo") },
+  { key: "duration", label: t("sessionPage.duration"), render: (r) => t("units.seconds", { value: r.duration.toFixed(3) }) },
+  { key: "time_of_day", label: t("sessionPage.timeOfDay") },
 ];
 
 function bestLapsSummary(laps) {
@@ -151,7 +153,7 @@ export default function SessionPage() {
   useSetBreadcrumb(
     [
       { label: year, to: `/${year}` },
-      { label: event ? event.EventName : `Етап ${round}`, to: `/${year}/${round}` },
+      { label: event ? event.EventName : t("chart.roundN", { round }), to: `/${year}/${round}` },
       { label: session },
     ],
     [year, round, session, event?.EventName]
@@ -237,11 +239,11 @@ export default function SessionPage() {
 
   const tabs =
     category === "practice"
-      ? [{ id: "laps", label: "Кола" }, { id: "weather", label: "Погода" }]
+      ? [{ id: "laps", label: t("sessionPage.laps") }, { id: "weather", label: t("sessionPage.weather") }]
       : [
-          { id: "results", label: "Результати" },
-          { id: "laps", label: "Кола" },
-          { id: "weather", label: "Погода" },
+          { id: "results", label: t("sessionPage.results") },
+          { id: "laps", label: t("sessionPage.laps") },
+          { id: "weather", label: t("sessionPage.weather") },
         ];
 
   const lapSeries = selected.map((code) => ({
@@ -312,20 +314,20 @@ export default function SessionPage() {
                   </button>
                 ))}
               </div>
-              {fastMode && <Badge tone="neutral">CSV — звужений набір полів</Badge>}
+              {fastMode && <Badge tone="neutral">{t("sessionPage.csvBadge")}</Badge>}
             </div>
           )}
 
           {!fastMode && showFastModeSuggestion && (
             <div className="border border-(--color-line) bg-(--color-surface-2) rounded-md px-4 py-3 flex items-center justify-between gap-3" style={{ borderLeft: "3px solid var(--color-warn)" }}>
               <p className="text-sm text-(--color-text-dim)">
-                Це триває довше за звичне — спробувати швидкий CSV-режим (менше полів, але миттєво)?
+                {t("sessionPage.csvSuggest")}
               </p>
               <button
                 onClick={() => setFastMode(true)}
                 className="shrink-0 text-xs uppercase tracking-wide font-semibold px-3 py-1.5 rounded-md bg-(--color-warn) text-black"
               >
-                Спробувати CSV
+                {t("sessionPage.csvTry")}
               </button>
             </div>
           )}
@@ -334,17 +336,17 @@ export default function SessionPage() {
             <>
               <ErrorBanner message={csvResults.error} onRetry={csvResults.refetch} />
               {!csvResults.error && (
-                <ResultsTable rows={csvResults.data || []} columns={csvColumns} emptyLabel="Результатів немає." />
+                <ResultsTable rows={csvResults.data || []} columns={csvColumns} emptyLabel={t("sessionPage.noResults")} />
               )}
             </>
           ) : (
             <>
               <ErrorBanner message={results.error} onRetry={results.refetch} />
               {results.loading ? (
-                <Loader label={`Завантажуємо результати сесії ${sessionMeta?.name || session}…`} />
+                <Loader label={t("sessionPage.loadingResults", { session: sessionMeta?.name || session })} />
               ) : (
                 !results.error && (
-                  <ResultsTable rows={results.data || []} columns={columns} emptyLabel="Результатів немає." />
+                  <ResultsTable rows={results.data || []} columns={columns} emptyLabel={t("sessionPage.noResults")} />
                 )
               )}
             </>
@@ -353,7 +355,7 @@ export default function SessionPage() {
           {category === "race" && gridPositionPoints.length > 0 && (
             <div>
               <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                Старт → Фініш
+                {t("sessionPage.startFinish")}
               </h4>
               <GridPositionScatter points={gridPositionPoints} />
             </div>
@@ -362,17 +364,17 @@ export default function SessionPage() {
           {session === "R" && !pitStops.error && pitStops.data?.length > 0 && (
             <div>
               <div className="flex items-center gap-2.5 mb-2">
-                <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim)">Піт-стопи</h4>
+                <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim)">{t("vsField.stops")}</h4>
                 {fastestStop && (
                   <Badge tone="good">
-                    🏆 Найшвидший: {fastestStop.code} {fastestStop.duration.toFixed(3)}с
+                    🏆 {t("sessionPage.fastestStop", { code: fastestStop.code, value: fastestStop.duration.toFixed(3) })}
                   </Badge>
                 )}
               </div>
-              <ResultsTable rows={pitStops.data} columns={pitStopColumns} emptyLabel="Піт-стопів немає." />
+              <ResultsTable rows={pitStops.data} columns={pitStopColumns()} emptyLabel={t("charts.noPitStops")} />
               <div className="mt-3">
                 <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                  Стрічка піт-стопів
+                  {t("sessionPage.pitTimeline")}
                 </h4>
                 <PitStopTimeline pitStops={pitStops.data} order={pitStopOrder} />
               </div>
@@ -395,8 +397,8 @@ export default function SessionPage() {
             <Loader
               label={
                 category === "practice"
-                  ? `Завантажуємо кола сесії ${session}… для гонки/практики це можуть бути сотні рядків`
-                  : `Завантажуємо кола та пілотів сесії ${session}…`
+                  ? t("sessionPage.loadingLapsLong", { session })
+                  : t("sessionPage.loadingLaps", { session })
               }
             />
           ) : (
@@ -405,21 +407,21 @@ export default function SessionPage() {
               <>
                 <div>
                   <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                    Позиція по колах
+                    {t("vsField.positions")}
                   </h4>
                   <PositionChart series={allDriversSeries} />
                 </div>
 
                 <div>
                   <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                    Еволюція траси
+                    {t("sessionPage.trackEvolution")}
                   </h4>
                   <TrackEvolutionChart laps={laps.data || []} />
                 </div>
 
                 <div>
                   <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                    Рейтинг спідтрапу (ST)
+                    {t("sessionPage.speedTrapRanking")}
                   </h4>
                   <SpeedTrapRanking laps={laps.data || []} colorByCode={driverColorByCode} />
                 </div>
@@ -427,25 +429,25 @@ export default function SessionPage() {
                 {category === "practice" && (
                   <div>
                     <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                      Найкращі кола (за /api/laps — результати практики малоінформативні)
+                      {t("sessionPage.bestLaps")}
                     </h4>
                     <ResultsTable
                       rows={summary}
-                      emptyLabel="Кіл ще немає."
+                      emptyLabel={t("sessionPage.noLapsYet")}
                       columns={[
                         { key: "rank", label: "#" },
                         {
                           key: "Driver",
-                          label: "Пілот",
+                          label: t("standingsTable.driver"),
                           render: (r) => (
                             <DriverCell code={r.Driver} to={`/${year}/${round}/${session}/driver/${r.Driver}`} />
                           ),
                         },
-                        { key: "Team", label: "Команда" },
-                        { key: "LapTime", label: "Найкраще коло", render: (r) => formatLapTime(r.LapTime) },
+                        { key: "Team", label: t("profile.team") },
+                        { key: "LapTime", label: t("sessionPage.bestLap"), render: (r) => formatLapTime(r.LapTime) },
                         {
                           key: "Compound",
-                          label: "Шина",
+                          label: t("laps.tyre"),
                           render: (r) => <TyreBadge compound={r.Compound} />,
                         },
                       ]}
@@ -456,7 +458,7 @@ export default function SessionPage() {
                 <div className="grid grid-cols-1 gap-2">
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim)">
-                      Оберіть пілотів (для графіка темпу й порівняння)
+                      {t("sessionPage.pickDrivers")}
                     </h4>
                     <button
                       disabled={selected.length < 2}
@@ -464,9 +466,9 @@ export default function SessionPage() {
                         navigate(`/${year}/${round}/${session}/compare?drivers=${selected.join(",")}`)
                       }
                       className="text-xs uppercase tracking-wide px-3 py-1.5 rounded bg-(--color-accent) text-white font-semibold disabled:opacity-30 disabled:cursor-not-allowed"
-                      title={selected.length < 2 ? "Обери щонайменше 2 пілотів" : undefined}
+                      title={selected.length < 2 ? t("sessionPage.pickTwo") : undefined}
                     >
-                      Порівняти обраних →
+                      {t("sessionPage.compareSelected")} →
                     </button>
                   </div>
                   <DriverMultiSelect drivers={drivers.data || []} selected={selected} onToggle={toggleDriver} />
@@ -475,14 +477,14 @@ export default function SessionPage() {
                 {selected.length > 0 && (
                   <div>
                     <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                      Темп по колах
+                      {t("driverPage.pace")}
                     </h4>
                     <LapTimeChart series={lapSeries} />
                   </div>
                 )}
 
                 <div>
-                  <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">Усі кола</h4>
+                  <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">{t("driverPage.allLaps")}</h4>
                   <LapsTable laps={selected.length ? lapSeries.flatMap((s) => s.laps) : laps.data || []} showDriver />
                 </div>
               </>
@@ -495,7 +497,7 @@ export default function SessionPage() {
         <>
           <ErrorBanner message={weather.error} onRetry={weather.refetch} />
           {weather.loading ? (
-            <Loader label={`Завантажуємо погоду сесії ${session}…`} />
+            <Loader label={t("sessionPage.loadingWeather", { session })} />
           ) : (
             !weather.error && <WeatherCharts points={weather.data || []} laps={laps.data} />
           )}

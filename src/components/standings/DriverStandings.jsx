@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Trans } from "react-i18next";
 import { teamHex } from "../../utils/constants";
 import DriverAvatar from "../overview/DriverAvatar";
 import Badge from "../common/Badge";
@@ -6,6 +7,7 @@ import Section from "../overview/Section";
 import FormChips from "./FormChips";
 import PointsProgressChart from "./PointsProgressChart";
 import { seriesColor, withTeammateDashes } from "../../utils/chartColors";
+import { t } from "../../i18n";
 
 const CHART_TOP = 6;
 const th = "text-left px-3 py-2 font-medium whitespace-nowrap";
@@ -14,22 +16,23 @@ const td = "px-3 py-2 whitespace-nowrap";
 // Статус сезону над таблицею: фінальна чи проміжна, скільки очок ще в грі.
 export function SeasonStatus({ progress }) {
   if (progress.final) {
-    return <p className="text-sm text-(--color-text-dim)">Фінальна таблиця сезону.</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("standingsTable.final")}</p>;
   }
   return (
     <p className="text-sm text-(--color-text-dim)">
-      Після етапу <span className="font-mono-data text-(--color-text)">{progress.completed_rounds}</span> з{" "}
-      <span className="font-mono-data">{progress.total_rounds}</span> · ще можна набрати{" "}
-      <span className="font-mono-data text-(--color-text)">{progress.max_remaining_points}</span> очок за
-      пілота
+      <Trans
+        i18nKey="standingsTable.status"
+        values={{ done: progress.completed_rounds, total: progress.total_rounds, points: progress.max_remaining_points }}
+        components={{ b: <span className="font-mono-data text-(--color-text)" /> }}
+      />
     </p>
   );
 }
 
 function TitleBadge({ driver, final }) {
-  if (final && driver.position === 1) return <Badge tone="good">Чемпіон</Badge>;
+  if (final && driver.position === 1) return <Badge tone="good">{t("standingsTable.champion")}</Badge>;
   // "У грі" лише для переслідувачів — лідер у грі за визначенням.
-  if (!final && driver.position > 1 && driver.can_win_title) return <Badge tone="neutral">у грі за титул</Badge>;
+  if (!final && driver.position > 1 && driver.can_win_title) return <Badge tone="neutral">{t("standingsTable.inContention")}</Badge>;
   return null;
 }
 
@@ -48,7 +51,7 @@ export default function DriverStandings({ progress, year }) {
     <div className="flex flex-col gap-4">
       <SeasonStatus progress={progress} />
 
-      <Section title={final ? "Як розгорталась боротьба за титул" : "Боротьба за титул"}>
+      <Section title={final ? t("standingsTable.fightFinal") : t("standingsTable.fight")}>
         <PointsProgressChart rounds={rounds} series={chartSeries} />
       </Section>
 
@@ -56,17 +59,17 @@ export default function DriverStandings({ progress, year }) {
         <table className="w-full text-sm">
           <thead className="bg-(--color-surface) text-(--color-text-dim) text-xs uppercase tracking-wide">
             <tr>
-              <th className={th}>Поз.</th>
-              <th className={th}>Пілот</th>
-              <th className={`${th} text-right`}>Очки</th>
-              <th className={`${th} text-right hidden sm:table-cell`}>Відст.</th>
-              <th className={`${th} text-right`} title="Перемоги">Перем.</th>
-              <th className={`${th} text-right hidden md:table-cell`}>Подіуми</th>
-              <th className={`${th} text-right hidden md:table-cell`} title="Перше місце в кваліфікації">
-                1-й у квалі
+              <th className={th}>{t("standingsTable.pos")}</th>
+              <th className={th}>{t("standingsTable.driver")}</th>
+              <th className={`${th} text-right`}>{t("standingsTable.points")}</th>
+              <th className={`${th} text-right hidden sm:table-cell`}>{t("standingsTable.gap")}</th>
+              <th className={`${th} text-right`} title={t("standingsTable.winsFull")}>{t("standingsTable.wins")}</th>
+              <th className={`${th} text-right hidden md:table-cell`}>{t("standingsTable.podiums")}</th>
+              <th className={`${th} text-right hidden md:table-cell`} title={t("standingsTable.qualiFirstHint")}>
+                {t("standingsTable.qualiFirst")}
               </th>
-              <th className={`${th} text-right hidden md:table-cell`}>Сходи</th>
-              <th className={`${th} hidden lg:table-cell`}>Форма</th>
+              <th className={`${th} text-right hidden md:table-cell`}>{t("standingsTable.dnfs")}</th>
+              <th className={`${th} hidden lg:table-cell`}>{t("standingsTable.form")}</th>
             </tr>
           </thead>
           <tbody>

@@ -2,6 +2,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, Ca
 import { formatLapTime } from "../../utils/time";
 import { median } from "../../utils/stats";
 import { timeDomain } from "../../utils/chartAxis";
+import { t } from "../../i18n";
 
 // laps — усе поле одразу (не один пілот): медіана й найкраще коло поля
 // на кожному колі сесії, щоб побачити, коли траса "гумується" (швидшає)
@@ -29,7 +30,7 @@ function ChartTooltip({ active, payload, label }) {
   return (
     <div className="bg-(--color-surface) border border-(--color-line) rounded-md px-3 py-2 text-xs font-mono-data">
       <p className="text-(--color-text-dim) mb-1">
-        Коло {label} · {count} пілотів
+        {t("chart.lapN", { lap: label })} · {t("charts.driversCount", { count })}
       </p>
       {payload.map((p) => (
         <p key={p.dataKey} style={{ color: p.color }}>
@@ -43,7 +44,7 @@ function ChartTooltip({ active, payload, label }) {
 export default function TrackEvolutionChart({ laps, height = 260 }) {
   const data = buildData(laps);
   if (!data.length) {
-    return <p className="text-sm text-(--color-text-dim)">Немає кіл для побудови графіка.</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("chart.noLaps")}</p>;
   }
 
   return (
@@ -54,7 +55,7 @@ export default function TrackEvolutionChart({ laps, height = 260 }) {
           dataKey="LapNumber"
           stroke="var(--color-text-dim)"
           tick={{ fill: "var(--color-text-dim)", fontSize: 11 }}
-          label={{ value: "Коло", position: "insideBottom", offset: -2, fill: "var(--color-text-dim)", fontSize: 11 }}
+          label={{ value: t("chart.lap"), position: "insideBottom", offset: -2, fill: "var(--color-text-dim)", fontSize: 11 }}
         />
         <YAxis
           reversed
@@ -66,8 +67,8 @@ export default function TrackEvolutionChart({ laps, height = 260 }) {
         />
         <Tooltip content={<ChartTooltip />} />
         <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Line type="monotone" dataKey="median" name="Медіана поля" stroke="var(--color-accent)" strokeWidth={2} dot={false} isAnimationActive={false} />
-        <Line type="monotone" dataKey="best" name="Найкраще коло поля" stroke="var(--color-good)" strokeWidth={1.5} strokeDasharray="4 3" dot={false} isAnimationActive={false} />
+        <Line type="monotone" dataKey="median" name={t("charts.fieldMedian")} stroke="var(--color-accent)" strokeWidth={2} dot={false} isAnimationActive={false} />
+        <Line type="monotone" dataKey="best" name={t("charts.fieldBest")} stroke="var(--color-good)" strokeWidth={1.5} strokeDasharray="4 3" dot={false} isAnimationActive={false} />
       </LineChart>
     </ResponsiveContainer>
   );

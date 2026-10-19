@@ -1,5 +1,7 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { LANGUAGES } from "./i18n";
 import { BreadcrumbProvider } from "./context/BreadcrumbProvider";
 import { useBreadcrumbItems } from "./hooks/useBreadcrumb";
 import Breadcrumb from "./components/common/Breadcrumb";
@@ -19,7 +21,29 @@ const ComparePage = lazy(() => import("./pages/ComparePage"));
 
 const CURRENT_YEAR = new Date().getFullYear();
 
+// Перемикач мови інтерфейсу — вибір зберігається (див. i18n/index.js).
+function LanguageSwitch() {
+  const { t, i18n } = useTranslation();
+  return (
+    <div className="flex shrink-0 rounded-md border border-(--color-line) p-0.5" role="group" aria-label={t("app.language")}>
+      {LANGUAGES.map((lng) => (
+        <button
+          key={lng}
+          onClick={() => i18n.changeLanguage(lng)}
+          aria-pressed={i18n.language === lng}
+          className={`px-2 py-0.5 text-[11px] uppercase font-semibold rounded transition-colors ${
+            i18n.language === lng ? "bg-(--color-surface-2) text-(--color-text)" : "text-(--color-text-dim) hover:text-(--color-text)"
+          }`}
+        >
+          {lng}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function TopBar() {
+  const { t } = useTranslation();
   const items = useBreadcrumbItems();
   const navigate = useNavigate();
 
@@ -47,14 +71,17 @@ function TopBar() {
         </>
       )}
 
-      {items.length > 1 && (
-        <button
-          onClick={() => navigate(-1)}
-          className="ml-auto shrink-0 inline-flex items-center gap-1.5 text-xs uppercase tracking-wide text-(--color-text-dim) hover:text-(--color-text) transition-colors px-2.5 py-1.5 rounded-md hover:bg-(--color-surface)"
-        >
-          ← Назад
-        </button>
-      )}
+      <div className="ml-auto flex items-center gap-2 shrink-0">
+        {items.length > 1 && (
+          <button
+            onClick={() => navigate(-1)}
+            className="hidden sm:inline-flex items-center gap-1.5 text-xs uppercase tracking-wide text-(--color-text-dim) hover:text-(--color-text) transition-colors px-2.5 py-1.5 rounded-md hover:bg-(--color-surface)"
+          >
+            ← {t("app.back")}
+          </button>
+        )}
+        <LanguageSwitch />
+      </div>
     </header>
   );
 }
@@ -65,14 +92,18 @@ function StandingsRedirect() {
 }
 
 export default function App() {
+  const { t, i18n } = useTranslation();
   return (
     <BrowserRouter>
       <BreadcrumbProvider>
         <div className="min-h-screen">
           <TopBar />
 
-          <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-            <Suspense fallback={<Loader label="Завантажуємо сторінку…" />}>
+          {/* key — при зміні мови вміст перемонтовується, тож дати й підписи
+              (зокрема в графіках, що не підписані на i18n) оновлюються всі
+              одразу; дані беруться з кешу браузера, без нових запитів. */}
+          <main key={i18n.language} className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+            <Suspense fallback={<Loader label={t("common.loadingPage")} />}>
               <Routes>
                 <Route path="/" element={<Navigate to={`/${CURRENT_YEAR}`} replace />} />
                 <Route path="/:year" element={<SeasonPage />} />

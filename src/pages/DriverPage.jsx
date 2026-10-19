@@ -18,6 +18,7 @@ import Loader from "../components/common/Loader";
 import StatTile from "../components/common/StatTile";
 import EventContext from "../components/driver/EventContext";
 import RaceVsField from "../components/driver/RaceVsField";
+import { t } from "../i18n";
 
 export default function DriverPage() {
   const { year, round, session, driverCode } = useParams();
@@ -39,7 +40,7 @@ export default function DriverPage() {
   useSetBreadcrumb(
     [
       { label: year, to: `/${year}` },
-      { label: event ? event.EventName : `Етап ${round}`, to: `/${year}/${round}` },
+      { label: event ? event.EventName : t("chart.roundN", { round }), to: `/${year}/${round}` },
       { label: session, to: `/${year}/${round}/${session}` },
       { label: driverCode },
     ],
@@ -82,7 +83,7 @@ export default function DriverPage() {
     enabled: isRace,
   });
 
-  if (!pinnedDriver && loading) return <Loader label={`Завантажуємо дані пілота ${driverCode}…`} />;
+  if (!pinnedDriver && loading) return <Loader label={t("driverPage.loading", { code: driverCode })} />;
   if (!pinnedDriver && error) return <ErrorBanner message={error} onRetry={refetch} />;
   if (!pinnedDriver) return null;
 
@@ -132,7 +133,7 @@ export default function DriverPage() {
           to={`/${year}/${round}/${session}/compare?drivers=${pinnedDriver.Abbreviation}`}
           className="text-xs uppercase tracking-wide font-semibold px-3.5 py-2 rounded-md border border-(--color-line) text-(--color-text-dim) hover:text-(--color-text) hover:border-(--color-accent) transition-colors"
         >
-          Порівняти →
+          {t("driverPage.compare")} →
         </Link>
       </div>
 
@@ -146,7 +147,7 @@ export default function DriverPage() {
               key={s.code}
               disabled={future}
               onClick={() => navigate(`/${year}/${round}/${s.code}/driver/${driverCode}`)}
-              title={future ? "Ще не відбулась" : undefined}
+              title={future ? t("session.notYet") : undefined}
               className={`px-3 py-1.5 text-xs uppercase tracking-wide rounded-full transition-colors ${
                 future
                   ? "text-(--color-text-dim)/40 cursor-not-allowed"
@@ -166,16 +167,16 @@ export default function DriverPage() {
       {error && <ErrorBanner message={error} onRetry={refetch} />}
 
       {loading && (
-        <p className="text-xs text-(--color-text-dim) font-mono-data">Оновлюємо дані сесії {session}…</p>
+        <p className="text-xs text-(--color-text-dim) font-mono-data">{t("driverPage.updating", { session })}</p>
       )}
 
       {!error && data && (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatTile label="Позиція" value={result?.Position ?? "—"} />
-            <StatTile label="Класифікація" value={classifiedPositionLabel(result?.ClassifiedPosition)} />
-            <StatTile label="Очки" value={result?.Points ?? "—"} />
-            <StatTile label="Найшвидше коло сесії" value={formatLapTime(fastestLap?.LapTime)} accent />
+            <StatTile label={t("driverPage.position")} value={result?.Position ?? "—"} />
+            <StatTile label={t("driverPage.classified")} value={classifiedPositionLabel(result?.ClassifiedPosition)} />
+            <StatTile label={t("standingsTable.points")} value={result?.Points ?? "—"} />
+            <StatTile label={t("driverPage.fastestLap")} value={formatLapTime(fastestLap?.LapTime)} accent />
           </div>
 
           {isRace && allLaps?.length > 0 && (
@@ -191,7 +192,7 @@ export default function DriverPage() {
           {stints?.length > 0 && (
             <div>
               <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                Стратегія шин
+                {t("driverPage.tyreStrategy")}
               </h3>
               <TyreStintTimeline
                 rows={[{ label: pinnedDriver.Abbreviation, stints }]}
@@ -206,27 +207,27 @@ export default function DriverPage() {
           {hasCompound && (
             <div>
               <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                Крива деградації шини
+                {t("driverPage.degradation")}
               </h3>
               <TyreDegradationChart laps={lapList} />
             </div>
           )}
 
           <div>
-            <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">Темп по колах</h3>
+            <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">{t("driverPage.pace")}</h3>
             <LapTimeChart series={[{ code: pinnedDriver.Abbreviation, color: teamColor, laps: lapsWithPitDuration }]} />
           </div>
 
           {hasSectors && (
             <div>
-              <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">Тренд по секторах</h3>
+              <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">{t("driverPage.sectors")}</h3>
               <SectorTrendChart laps={lapList} />
             </div>
           )}
 
           <div>
             <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-              Розкид темпу по стінтах
+              {t("driverPage.stintSpread")}
             </h3>
             <StintBoxPlot laps={laps || []} />
           </div>
@@ -234,14 +235,14 @@ export default function DriverPage() {
           {hasSpeeds && (
             <div>
               <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                Швидкість на пастках
+                {t("driverPage.speedTraps")}
               </h3>
               <SpeedTrapChart laps={lapList} color={teamColor} />
             </div>
           )}
 
           <div>
-            <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">Усі кола</h3>
+            <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">{t("driverPage.allLaps")}</h3>
             <LapsTable laps={laps || []} />
           </div>
         </>

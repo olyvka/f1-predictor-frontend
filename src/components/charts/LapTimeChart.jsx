@@ -10,8 +10,9 @@ import {
   ReferenceArea,
 } from "recharts";
 import { formatLapTime } from "../../utils/time";
-import { trackStatusSeverity, FLAG_BAND_COLORS, FLAG_BAND_LABELS } from "../../utils/constants";
+import { trackStatusSeverity, FLAG_BAND_COLORS, flagBandLabels } from "../../utils/constants";
 import { timeDomain } from "../../utils/chartAxis";
+import { t } from "../../i18n";
 
 // series: [{ code, color, dash?, laps: [{LapNumber, LapTime, IsAccurate, Deleted, PitInTime, PitOutTime, TrackStatus, PitDuration?}] }]
 // IsAccurate:false кола прибираються з лінії (інакше викиди спотворюють
@@ -107,7 +108,7 @@ function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-(--color-surface) border border-(--color-line) rounded-md px-3 py-2 text-xs font-mono-data">
-      <p className="text-(--color-text-dim) mb-1">Коло {label}</p>
+      <p className="text-(--color-text-dim) mb-1">{t("chart.lapN", { lap: label })}</p>
       {payload
         .filter((p) => p.value != null)
         .map((p) => (
@@ -115,8 +116,8 @@ function ChartTooltip({ active, payload, label }) {
             {p.dataKey}: {formatLapTime(p.value)}
             {p.payload[`${p.dataKey}__pit`] &&
               (p.payload[`${p.dataKey}__pitDuration`] != null
-                ? ` · піт-стоп ${p.payload[`${p.dataKey}__pitDuration`].toFixed(3)}с`
-                : " · піт-стоп")}
+                ? ` · ${t("charts.pitStopDuration", { value: p.payload[`${p.dataKey}__pitDuration`].toFixed(3) })}`
+                : ` · ${t("charts.pitStop")}`)}
           </p>
         ))}
     </div>
@@ -127,7 +128,7 @@ export default function LapTimeChart({ series, height = 280 }) {
   const data = buildMergedData(series);
 
   if (!data.length) {
-    return <p className="text-sm text-(--color-text-dim)">Немає кіл для побудови графіка.</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("chart.noLaps")}</p>;
   }
 
   const bands = flagBands(series);
@@ -151,7 +152,7 @@ export default function LapTimeChart({ series, height = 280 }) {
             dataKey="LapNumber"
             stroke="var(--color-text-dim)"
             tick={{ fill: "var(--color-text-dim)", fontSize: 11 }}
-            label={{ value: "Коло", position: "insideBottom", offset: -2, fill: "var(--color-text-dim)", fontSize: 11 }}
+            label={{ value: t("chart.lap"), position: "insideBottom", offset: -2, fill: "var(--color-text-dim)", fontSize: 11 }}
           />
           <YAxis
             reversed
@@ -183,9 +184,9 @@ export default function LapTimeChart({ series, height = 280 }) {
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-(--color-text-dim) font-mono-data">
         <span className="inline-flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full border-2 border-(--color-accent)" />
-          Піт-стоп
+          {t("charts.pitStopLegend")}
         </span>
-        {Object.entries(FLAG_BAND_LABELS).map(([sev, label]) => (
+        {Object.entries(flagBandLabels()).map(([sev, label]) => (
           <span key={sev} className="inline-flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm" style={{ background: FLAG_BAND_COLORS[sev], opacity: 0.6 }} />
             {label}

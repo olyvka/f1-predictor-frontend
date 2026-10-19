@@ -1,6 +1,7 @@
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from "recharts";
 import { formatSector } from "../../utils/time";
 import { timeDomain } from "../../utils/chartAxis";
+import { t } from "../../i18n";
 
 const SECTORS = [
   { key: "Sector1Time", label: "S1", color: "#4f7cff" },
@@ -12,7 +13,7 @@ function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-(--color-surface) border border-(--color-line) rounded-md px-3 py-2 text-xs font-mono-data">
-      <p className="text-(--color-text-dim) mb-1">Коло {label}</p>
+      <p className="text-(--color-text-dim) mb-1">{t("chart.lapN", { lap: label })}</p>
       {payload
         .filter((p) => p.value != null)
         .map((p) => (
@@ -32,7 +33,7 @@ export default function SectorTrendChart({ laps, height = 260 }) {
     .sort((a, b) => a.LapNumber - b.LapNumber);
 
   if (!data.length) {
-    return <p className="text-sm text-(--color-text-dim)">Немає кіл для побудови графіка.</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("chart.noLaps")}</p>;
   }
 
   return (
@@ -43,7 +44,7 @@ export default function SectorTrendChart({ laps, height = 260 }) {
           dataKey="LapNumber"
           stroke="var(--color-text-dim)"
           tick={{ fill: "var(--color-text-dim)", fontSize: 11 }}
-          label={{ value: "Коло", position: "insideBottom", offset: -2, fill: "var(--color-text-dim)", fontSize: 11 }}
+          label={{ value: t("chart.lap"), position: "insideBottom", offset: -2, fill: "var(--color-text-dim)", fontSize: 11 }}
         />
         <YAxis
           reversed

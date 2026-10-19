@@ -10,6 +10,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { formatDelta } from "../../utils/time";
+import { t } from "../../i18n";
 
 // Бекенд не рахує відставання між пілотами — лише сирі LapTime, тому
 // кумулятивну дельту рахуємо тут. series[0] — референс (0 на всіх колах),
@@ -47,7 +48,7 @@ function DeltaTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-(--color-surface) border border-(--color-line) rounded-md px-3 py-2 text-xs font-mono-data">
-      <p className="text-(--color-text-dim) mb-1">Коло {label}</p>
+      <p className="text-(--color-text-dim) mb-1">{t("chart.lapN", { lap: label })}</p>
       {payload
         .filter((p) => p.value != null)
         .map((p) => (
@@ -66,7 +67,7 @@ export default function DeltaChart({ series, height = 240 }) {
   const [reference, ...others] = series;
 
   if (!data.length) {
-    return <p className="text-sm text-(--color-text-dim)">Недостатньо даних для розрахунку відставання.</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("chart.noDelta")}</p>;
   }
 
   return (
@@ -77,7 +78,7 @@ export default function DeltaChart({ series, height = 240 }) {
           dataKey="LapNumber"
           stroke="var(--color-text-dim)"
           tick={{ fill: "var(--color-text-dim)", fontSize: 11 }}
-          label={{ value: "Коло", position: "insideBottom", offset: -2, fill: "var(--color-text-dim)", fontSize: 11 }}
+          label={{ value: t("chart.lap"), position: "insideBottom", offset: -2, fill: "var(--color-text-dim)", fontSize: 11 }}
         />
         <YAxis
           stroke="var(--color-text-dim)"

@@ -1,3 +1,5 @@
+import { t } from "../../i18n";
+
 // SVG-контур траси з public/circuits (див. utils/circuits.js).
 // variant="thumb" — мініатюра в списку етапів: лише лінія.
 // variant="full" — картка етапу: номери поворотів і лінія старт/фініш.
@@ -14,7 +16,7 @@ export default function CircuitMap({ outline, variant = "full", className = "" }
       className={className}
       // Мініатюра в списку — декор поруч із назвою етапу, читачу екрана
       // вона нічого не додає; повна схема — підписане зображення.
-      {...(full ? { role: "img", "aria-label": `Схема траси ${outline.circuit}` } : { "aria-hidden": true })}
+      {...(full ? { role: "img", "aria-label": t("circuit.mapLabel", { name: outline.circuit }) } : { "aria-hidden": true })}
       preserveAspectRatio="xMidYMid meet"
     >
       {full && (

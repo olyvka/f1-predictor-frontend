@@ -11,6 +11,7 @@ import DeltaChart from "../components/charts/DeltaChart";
 import TyreStintTimeline, { TyreLegend } from "../components/charts/TyreStintTimeline";
 import ErrorBanner from "../components/common/ErrorBanner";
 import Loader from "../components/common/Loader";
+import { t } from "../i18n";
 
 const SLOT_LETTERS = "ABCDEFGH";
 const MAX_SLOTS = 6;
@@ -35,15 +36,15 @@ function FastestLapCard({ code, color, fastest }) {
   return (
     <div className="border border-(--color-line) bg-(--color-surface-2) rounded-md overflow-hidden" style={{ borderTop: `3px solid ${color}` }}>
       <p className="text-[11px] uppercase tracking-widest text-(--color-text-dim) font-bold px-4 pt-3">
-        Найшвидше коло — {code}
+        {t("compare.fastestLap", { code })}
       </p>
       {fastest ? (
         <dl className="px-4 pb-3.5 pt-2 text-sm">
           {[
-            ["Час кола", formatLapTime(fastest.LapTime), true],
-            ["Сектор 1", formatSector(fastest.Sector1Time)],
-            ["Сектор 2", formatSector(fastest.Sector2Time)],
-            ["Сектор 3", formatSector(fastest.Sector3Time)],
+            [t("compare.lapTime"), formatLapTime(fastest.LapTime), true],
+            [t("compare.sector", { n: 1 }), formatSector(fastest.Sector1Time)],
+            [t("compare.sector", { n: 2 }), formatSector(fastest.Sector2Time)],
+            [t("compare.sector", { n: 3 }), formatSector(fastest.Sector3Time)],
           ].map(([label, value, big]) => (
             <div key={label} className="flex items-center justify-between py-1 border-t border-(--color-line) first:border-t-0">
               <dt className="text-(--color-text-dim)">{label}</dt>
@@ -51,16 +52,16 @@ function FastestLapCard({ code, color, fastest }) {
             </div>
           ))}
           <div className="flex items-center justify-between py-1 border-t border-(--color-line)">
-            <dt className="text-(--color-text-dim)">Шина</dt>
+            <dt className="text-(--color-text-dim)">{t("laps.tyre")}</dt>
             <dd><TyreBadge compound={fastest.Compound} /></dd>
           </div>
           <div className="flex items-center justify-between py-1 border-t border-(--color-line)">
-            <dt className="text-(--color-text-dim)">Номер кола</dt>
+            <dt className="text-(--color-text-dim)">{t("compare.lapNumber")}</dt>
             <dd className="font-mono-data">{fastest.LapNumber ?? "—"}</dd>
           </div>
         </dl>
       ) : (
-        <p className="text-sm text-(--color-text-dim) px-4 pb-3.5 pt-2">Немає даних</p>
+        <p className="text-sm text-(--color-text-dim) px-4 pb-3.5 pt-2">{t("common.noData")}</p>
       )}
     </div>
   );
@@ -79,9 +80,9 @@ export default function ComparePage() {
   useSetBreadcrumb(
     [
       { label: year, to: `/${year}` },
-      { label: event ? event.EventName : `Етап ${round}`, to: `/${year}/${round}` },
+      { label: event ? event.EventName : t("chart.roundN", { round }), to: `/${year}/${round}` },
       { label: session, to: `/${year}/${round}/${session}` },
-      { label: "Порівняння" },
+      { label: t("compare.crumb") },
     ],
     [year, round, session, event?.EventName]
   );
@@ -140,7 +141,7 @@ export default function ComparePage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h2 className="text-lg font-bold uppercase mb-3">Порівняння пілотів</h2>
+        <h2 className="text-lg font-bold uppercase mb-3">{t("compare.title")}</h2>
         <div className="flex flex-wrap gap-3">
           {Array.from({ length: slotCount }).map((_, i) => {
             const code = selected[i] || "";
@@ -160,7 +161,7 @@ export default function ComparePage() {
                   {slotCount > 2 && (
                     <button
                       onClick={() => removeSlot(i)}
-                      aria-label={`Прибрати слот ${SLOT_LETTERS[i]}`}
+                      aria-label={t("compare.removeSlot", { slot: SLOT_LETTERS[i] })}
                       className="text-(--color-text-dim) hover:text-(--color-danger) text-xs"
                     >
                       ✕
@@ -172,7 +173,7 @@ export default function ComparePage() {
                   onChange={(e) => setSlot(i, e.target.value)}
                   className="bg-(--color-surface) border border-(--color-line) rounded-md px-2.5 py-2 text-sm focus:outline-none focus:border-(--color-accent)"
                 >
-                  <option value="">Оберіть пілота…</option>
+                  <option value="">{t("compare.pickDriver")}</option>
                   {(drivers.data || [])
                     .filter((d) => d.Abbreviation === code || !takenElsewhere.has(d.Abbreviation))
                     .map((d) => (
@@ -205,7 +206,7 @@ export default function ComparePage() {
 
       {selected.length < 2 && (
         <p className="text-sm text-(--color-text-dim) border border-(--color-line) rounded-md px-4 py-3">
-          Обери щонайменше 2 пілотів вище, щоб побачити порівняння.
+          {t("compare.pickTwo")}
         </p>
       )}
 
@@ -220,20 +221,20 @@ export default function ComparePage() {
       {selected.length >= 2 && (
         <>
           {compare.loading ? (
-            <Loader label={`Завантажуємо порівняння ${selected.join(", ")}…`} />
+            <Loader label={t("compare.loading", { drivers: selected.join(", ") })} />
           ) : (
             !compare.error && (
               <>
                 <div>
                   <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                    Час кіл
+                    {t("compare.lapTimes")}
                   </h4>
                   <LapTimeChart series={series} />
                 </div>
 
                 <div>
                   <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                    Відставання по колах (кумулятивно, відносно {reference?.code})
+                    {t("compare.gap", { code: reference?.code })}
                   </h4>
                   <DeltaChart series={series} />
                 </div>
@@ -248,7 +249,7 @@ export default function ComparePage() {
                       return (
                         <div key={s.code} className="border border-(--color-line) bg-(--color-surface-2) rounded-md px-5 py-4">
                           <p className="text-[11px] uppercase tracking-widest text-(--color-text-dim) font-bold mb-1">
-                            Різниця найкращих кіл
+                            {t("compare.bestLapDelta")}
                           </p>
                           <div className="flex items-baseline gap-3 flex-wrap">
                             <span
@@ -270,7 +271,7 @@ export default function ComparePage() {
 
                 <div>
                   <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                    Найшвидші кола
+                    {t("compare.fastestLaps")}
                   </h4>
                   <div className="grid grid-cols-1 gap-3" style={{ gridTemplateColumns: `repeat(auto-fit, minmax(15rem, 1fr))` }}>
                     {series.map((s) => (
@@ -286,7 +287,7 @@ export default function ComparePage() {
 
                 <div>
                   <h4 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">
-                    Стратегії шин
+                    {t("compare.strategies")}
                   </h4>
                   <TyreStintTimeline
                     rows={series.map((s) => ({ label: s.code, stints: deriveStints(s.laps) }))}

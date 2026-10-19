@@ -1,4 +1,5 @@
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { t } from "../../i18n";
 
 // series: [{ code, color, dash?, laps: [{LapNumber, Position}] }] — увесь
 // пелотон одразу (не гейтиться вибором пілотів, на відміну від
@@ -22,7 +23,7 @@ function ChartTooltip({ active, payload, label }) {
   const sorted = [...payload].filter((p) => p.value != null).sort((a, b) => a.value - b.value);
   return (
     <div className="bg-(--color-surface) border border-(--color-line) rounded-md px-3 py-2 text-xs font-mono-data max-h-64 overflow-y-auto">
-      <p className="text-(--color-text-dim) mb-1">Коло {label}</p>
+      <p className="text-(--color-text-dim) mb-1">{t("chart.lapN", { lap: label })}</p>
       {sorted.map((p) => (
         <p key={p.dataKey} style={{ color: p.color }}>
           P{p.value} — {p.dataKey}
@@ -35,7 +36,7 @@ function ChartTooltip({ active, payload, label }) {
 export default function PositionChart({ series, height = 340 }) {
   const data = buildMergedData(series);
   if (!data.length) {
-    return <p className="text-sm text-(--color-text-dim)">Немає кіл для побудови графіка.</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("chart.noLaps")}</p>;
   }
 
   const maxPosition = Math.max(1, ...series.flatMap((s) => s.laps.map((l) => l.Position || 0)));
@@ -49,7 +50,7 @@ export default function PositionChart({ series, height = 340 }) {
             dataKey="LapNumber"
             stroke="var(--color-text-dim)"
             tick={{ fill: "var(--color-text-dim)", fontSize: 11 }}
-            label={{ value: "Коло", position: "insideBottom", offset: -2, fill: "var(--color-text-dim)", fontSize: 11 }}
+            label={{ value: t("chart.lap"), position: "insideBottom", offset: -2, fill: "var(--color-text-dim)", fontSize: 11 }}
           />
           <YAxis
             reversed

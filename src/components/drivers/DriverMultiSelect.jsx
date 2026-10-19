@@ -1,10 +1,11 @@
 import TeamBadge from "../results/TeamBadge";
+import { t } from "../../i18n";
 
 // Джерело валідних кодів пілотів (Abbreviation) для /api/laps, /api/driver,
 // /api/compare — не текстове поле, а список з /api/drivers.
 export default function DriverMultiSelect({ drivers, selected, onToggle }) {
   if (!drivers.length) {
-    return <p className="text-sm text-(--color-text-dim)">Пілоти для цієї сесії відсутні.</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("drivers.none")}</p>;
   }
 
   return (

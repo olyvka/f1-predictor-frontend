@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { teamHex } from "../../utils/constants";
 import Section from "./Section";
+import { t } from "../../i18n";
 
 const TOP = 5;
 
@@ -12,7 +13,7 @@ function Movement({ delta }) {
   return (
     <span
       className={`w-8 font-mono-data ${up ? "text-(--color-good)" : "text-(--color-danger)"}`}
-      title={up ? `Піднявся на ${delta}` : `Опустився на ${-delta}`}
+      title={up ? t("standings.up", { count: delta }) : t("standings.down", { count: -delta })}
     >
       {up ? "▲" : "▼"}
       {Math.abs(delta)}
@@ -31,14 +32,14 @@ export default function StandingsSnapshot({ standings, year }) {
 
   return (
     <Section
-      title={future ? "Чемпіонат перед етапом" : "Чемпіонат після етапу"}
-      action={{ to: `/${year}?tab=${tab === "drivers" ? "drivers" : "teams"}`, label: "Уся таблиця" }}
+      title={future ? t("standings.beforeRound") : t("standings.afterRound")}
+      action={{ to: `/${year}?tab=${tab === "drivers" ? "drivers" : "teams"}`, label: t("standings.fullTable") }}
     >
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex gap-1" role="tablist">
           {[
-            ["drivers", "Пілоти"],
-            ["constructors", "Команди"],
+            ["drivers", t("season.tabDrivers")],
+            ["constructors", t("season.tabTeams")],
           ].map(([id, label]) => (
             <button
               key={id}
@@ -56,7 +57,7 @@ export default function StandingsSnapshot({ standings, year }) {
           ))}
         </div>
         {future && (
-          <span className="text-[11px] text-(--color-text-dim)">станом на етап {standings.as_of_round}</span>
+          <span className="text-[11px] text-(--color-text-dim)">{t("standings.asOf", { round: standings.as_of_round })}</span>
         )}
       </div>
 

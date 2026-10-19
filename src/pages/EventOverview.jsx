@@ -11,12 +11,13 @@ import PredictionCheck from "../components/overview/PredictionCheck";
 import StandingsSnapshot from "../components/overview/StandingsSnapshot";
 import CircuitCard from "../components/overview/CircuitCard";
 import CircuitHistory from "../components/overview/CircuitHistory";
+import { t } from "../i18n";
 
 const rowBase = "-mx-2 px-2 rounded flex items-center gap-4 py-2 text-sm font-mono-data";
 
 function SessionList({ sessions }) {
   return (
-    <Section title="Розклад">
+    <Section title={t("event.schedule")}>
       {/* Ті самі сесії, що й у табах вище, — рядок веде на сторінку сесії.
           Майбутні сесії не клікабельні, як і відповідні таби. */}
       <div className="flex flex-col">
@@ -32,7 +33,7 @@ function SessionList({ sessions }) {
 
           if (future) {
             return (
-              <div key={s.code} className={`${rowBase} opacity-50`} title="Ще не відбулась">
+              <div key={s.code} className={`${rowBase} opacity-50`} title={t("session.notYet")}>
                 {cells}
                 <span className="w-4 shrink-0" aria-hidden="true" />
               </div>
@@ -66,7 +67,7 @@ export default function EventOverview() {
   useSetBreadcrumb(
     [
       { label: year, to: `/${year}` },
-      { label: event ? event.EventName : `Етап ${round}` },
+      { label: event ? event.EventName : t("chart.roundN", { round }) },
     ],
     [year, round, event?.EventName]
   );
@@ -79,7 +80,7 @@ export default function EventOverview() {
   const prediction = useApiQuery(() => api.getAnalysisStatus(year, round), [year, round]);
 
   if (!event) {
-    return <p className="text-sm text-(--color-text-dim)">Завантаження етапу…</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("event.loading")}</p>;
   }
 
   const allPast = sessions.length > 0 && sessions.every((s) => !isFuture(s.date));
@@ -91,7 +92,7 @@ export default function EventOverview() {
       {summary.data ? <RaceSummary summary={summary.data} /> : <NextSession sessions={sessions} />}
       {resultsPending && (
         <p className="text-sm text-(--color-text-dim) border border-(--color-line) rounded-md px-4 py-3">
-          Етап завершився, але його результатів ще немає в датасеті — підсумок зʼявиться після оновлення даних.
+          {t("event.resultsPending")}
         </p>
       )}
 

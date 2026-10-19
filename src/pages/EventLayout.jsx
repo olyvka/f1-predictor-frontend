@@ -7,6 +7,7 @@ import ErrorBanner from "../components/common/ErrorBanner";
 import Loader from "../components/common/Loader";
 import Badge from "../components/common/Badge";
 import { formatDateTime } from "../utils/format";
+import { t } from "../i18n";
 
 // Один запит на /api/races/{year} (щоб дістати назву/дату/EventFormat етапу
 // за номером) і /api/sessions/{year}/{round} (для табів) — обидва доступні
@@ -34,9 +35,9 @@ export default function EventLayout() {
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2.5">
           <h2 className="text-lg font-bold uppercase">
-            {event ? event.EventName : `Етап ${round}`}
+            {event ? event.EventName : t("chart.roundN", { round })}
           </h2>
-          {event?.EventFormat === "sprint_qualifying" && <Badge tone="sprint">Спринт</Badge>}
+          {event?.EventFormat === "sprint_qualifying" && <Badge tone="sprint">{t("summary.sprint")}</Badge>}
         </div>
         {event && (
           <p className="text-xs text-(--color-text-dim) font-mono-data">
@@ -48,14 +49,14 @@ export default function EventLayout() {
       <ErrorBanner message={error} onRetry={retry} />
 
       {sessions.loading ? (
-        <Loader label={`Завантажуємо список сесій етапу ${round}…`} />
+        <Loader label={t("event.loadingSessions", { round })} />
       ) : (
         !sessions.error && <SessionTabs sessions={sessions.data || []} />
       )}
 
       {/* Дочірні сторінки вантажаться ліниво (див. App.jsx) — свій Suspense
           тут, щоб на час підвантаження чанка шапка й таби етапу лишались. */}
-      <Suspense fallback={<Loader label="Завантажуємо сторінку…" />}>
+      <Suspense fallback={<Loader label={t("common.loadingPage")} />}>
         <Outlet context={{ event, sessions: sessions.data || [] }} />
       </Suspense>
     </div>

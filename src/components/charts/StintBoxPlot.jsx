@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { formatLapTime } from "../../utils/time";
 import { tyreColor } from "../../utils/constants";
 import { quantile } from "../../utils/stats";
+import { t } from "../../i18n";
 
 // Recharts не має box-plot-примітиву — малюємо самі: тонкий вусик
 // (min→max) + прямокутник (Q1→Q3) з рискою медіани, спільна шкала часу
@@ -41,7 +42,7 @@ export default function StintBoxPlot({ laps }) {
   const [hovered, setHovered] = useState(null);
 
   if (stints.length < 1) {
-    return <p className="text-sm text-(--color-text-dim)">Недостатньо кіл у стінтах для розкиду темпу.</p>;
+    return <p className="text-sm text-(--color-text-dim)">{t("charts.noStintSpread")}</p>;
   }
 
   const globalMin = Math.min(...stints.map((s) => s.min));
@@ -103,7 +104,7 @@ export default function StintBoxPlot({ laps }) {
                 strokeWidth={2}
               />
               <text x={cx} y={HEIGHT - 2} textAnchor="middle" fontSize="10" fill="var(--color-text-dim)" className="font-mono-data">
-                Стінт {s.stint}
+                {t("charts.stintN", { stint: s.stint })}
               </text>
             </g>
           );
@@ -116,11 +117,11 @@ export default function StintBoxPlot({ laps }) {
           style={{ left: AXIS_GUTTER + hovered * COLUMN_WIDTH + COLUMN_WIDTH / 2 }}
         >
           <p className="text-(--color-text-dim) mb-1">
-            Стінт {stints[hovered].stint} — {stints[hovered].compound || "—"}
+            {t("charts.stintN", { stint: stints[hovered].stint })} — {stints[hovered].compound || "—"}
           </p>
-          <p>Найкраще: {formatLapTime(stints[hovered].min)}</p>
-          <p>Медіана: {formatLapTime(stints[hovered].median)}</p>
-          <p>Найгірше: {formatLapTime(stints[hovered].max)}</p>
+          <p>{t("charts.best")}: {formatLapTime(stints[hovered].min)}</p>
+          <p>{t("charts.median")}: {formatLapTime(stints[hovered].median)}</p>
+          <p>{t("charts.worst")}: {formatLapTime(stints[hovered].max)}</p>
         </div>
       )}
     </div>

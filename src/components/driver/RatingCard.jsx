@@ -1,13 +1,15 @@
+import { Trans } from "react-i18next";
 import Section from "../overview/Section";
+import { t } from "../../i18n";
 
 // Значення складової людською мовою — поруч із перцентилем.
 const FORMATTERS = {
-  quali_vs_teammate: (v) => `${Math.round(v * 100)}% дуелей`,
-  race_vs_teammate: (v) => `${Math.round(v * 100)}% дуелей`,
-  positions_gained: (v) => `${v > 0 ? "+" : ""}${v.toFixed(1)} поз. за гонку`,
-  consistency: (v) => `розкид ±${v.toFixed(1)} поз.`,
-  incident_free: (v) => `${Math.round(v * 100)}% гонок`,
-  results: (v) => `${v.toFixed(1)} очк. за гонку`,
+  quali_vs_teammate: (v) => t("rating.duels", { value: Math.round(v * 100) }),
+  race_vs_teammate: (v) => t("rating.duels", { value: Math.round(v * 100) }),
+  positions_gained: (v) => t("rating.gained", { value: `${v > 0 ? "+" : ""}${v.toFixed(1)}` }),
+  consistency: (v) => t("rating.spread", { value: v.toFixed(1) }),
+  incident_free: (v) => t("rating.races", { value: Math.round(v * 100) }),
+  results: (v) => t("rating.pointsPerRace", { value: v.toFixed(1) }),
 };
 
 function tone(p) {
@@ -22,30 +24,30 @@ function tone(p) {
 export default function RatingCard({ rating }) {
   if (!rating) {
     return (
-      <Section title="Оцінка сезону">
-        <p className="text-sm text-(--color-text-dim)">Замало гонок для оцінки (потрібно щонайменше 5).</p>
+      <Section title={t("rating.title")}>
+        <p className="text-sm text-(--color-text-dim)">{t("rating.notEnough")}</p>
       </Section>
     );
   }
 
   return (
-    <Section title="Оцінка сезону">
+    <Section title={t("rating.title")}>
       <div className="flex items-baseline gap-3">
         <span className="font-mono-data text-4xl font-bold" style={{ color: tone(rating.score) }}>
           {rating.score}
         </span>
         <span className="text-sm text-(--color-text-dim)">
-          / 100 · <span className="text-(--color-text) font-semibold">{rating.rank}-й</span> з {rating.of} пілотів сезону
+          <Trans i18nKey="rating.rank" values={{ rank: rating.rank, of: rating.of }} components={{ b: <span className="text-(--color-text) font-semibold" /> }} />
         </span>
       </div>
 
       <ul className="flex flex-col gap-2.5">
         {rating.components.map((c) => (
-          <li key={c.key} className="flex flex-col gap-1" title={c.hint}>
+          <li key={c.key} className="flex flex-col gap-1" title={t(`rating.components.${c.key}.hint`, { defaultValue: c.hint })}>
             <div className="flex items-baseline justify-between gap-3 text-sm">
-              <span>{c.label}</span>
+              <span>{t(`rating.components.${c.key}.label`, { defaultValue: c.label })}</span>
               <span className="text-xs text-(--color-text-dim) font-mono-data">
-                {c.value != null ? FORMATTERS[c.key]?.(c.value) ?? c.value : "мало даних"}
+                {c.value != null ? FORMATTERS[c.key]?.(c.value) ?? c.value : t("rating.lowData")}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -60,8 +62,7 @@ export default function RatingCard({ rating }) {
         ))}
       </ul>
       <p className="text-[11px] text-(--color-text-dim)">
-        Кожна складова — перцентиль серед пілотів сезону з 5+ гонками (80 — кращий за 80% поля); оцінка — їх середнє.
-        Вину в аваріях датасет не розрізняє.
+        {t("rating.explain")}
       </p>
     </Section>
   );

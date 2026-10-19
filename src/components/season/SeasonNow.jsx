@@ -2,22 +2,23 @@ import { Link } from "react-router-dom";
 import { api } from "../../api/client";
 import { useApiQuery } from "../../hooks/useApiQuery";
 import { useNow } from "../../hooks/useNow";
-import { isEventCompleted, raceSessions, splitDuration, weekendRange } from "../../utils/format";
+import { dateFormatter, isEventCompleted, raceSessions, splitDuration, weekendRange } from "../../utils/format";
 import { countryFlag } from "../../utils/flags";
 import { teamHex } from "../../utils/constants";
 import CircuitMap from "../circuit/CircuitMap";
 import DriverAvatar from "../overview/DriverAvatar";
 import Section from "../overview/Section";
+import { t } from "../../i18n";
 
-const sessionTime = new Intl.DateTimeFormat("uk-UA", { weekday: "short", hour: "2-digit", minute: "2-digit" });
+const SESSION_TIME = { weekday: "short", hour: "2-digit", minute: "2-digit" };
 
 function Countdown({ ms }) {
-  const t = splitDuration(ms);
+  const left = splitDuration(ms);
   const units = [
-    [t.days, "дн"],
-    [t.hours, "год"],
-    [t.minutes, "хв"],
-    [t.seconds, "с"],
+    [left.days, t("units.d")],
+    [left.hours, t("units.h")],
+    [left.minutes, t("units.m")],
+    [left.seconds, t("units.s")],
   ];
   return (
     <div className="flex gap-3" role="timer" aria-live="off">
@@ -41,7 +42,7 @@ function NextEvent({ race, year, outline }) {
 
   return (
     <section className="border border-(--color-line) bg-(--color-surface-2) rounded-md p-4 flex flex-col gap-3 shadow-[inset_0_3px_0_var(--color-accent)]">
-      <h2 className="text-xs uppercase tracking-widest font-semibold text-(--color-accent)">Наступний етап · {race.RoundNumber}</h2>
+      <h2 className="text-xs uppercase tracking-widest font-semibold text-(--color-accent)">{t("seasonNow.next", { round: race.RoundNumber })}</h2>
       <div className="flex items-center gap-3 min-w-0">
         {outline && (
           <span className="w-20 h-14 shrink-0 text-(--color-accent)">
@@ -60,12 +61,12 @@ function NextEvent({ race, year, outline }) {
       {next ? (
         <div className="flex flex-col gap-1">
           <span className="text-xs text-(--color-text-dim)">
-            До <span className="text-(--color-text) font-semibold">{next.code}</span> · {next.name}
+            {t("seasonNow.until")} <span className="text-(--color-text) font-semibold">{next.code}</span> · {next.name}
           </span>
           <Countdown ms={next.at.getTime() - now} />
         </div>
       ) : (
-        <p className="text-sm text-(--color-text-dim)">Вікенд триває — результати незабаром.</p>
+        <p className="text-sm text-(--color-text-dim)">{t("seasonNow.ongoing")}</p>
       )}
 
       <ul className="flex flex-col text-sm border-t border-(--color-line) pt-2">
@@ -77,25 +78,25 @@ function NextEvent({ race, year, outline }) {
                 <span className="font-mono-data text-(--color-accent) w-9 inline-block">{s.code}</span>
                 {s.name}
               </span>
-              <span className="font-mono-data text-xs text-(--color-text-dim)">{sessionTime.format(s.at)}</span>
+              <span className="font-mono-data text-xs text-(--color-text-dim)">{dateFormatter(SESSION_TIME).format(s.at)}</span>
             </li>
           );
         })}
       </ul>
-      <p className="text-[11px] text-(--color-text-dim) -mt-1">Час — у вашому часовому поясі.</p>
+      <p className="text-[11px] text-(--color-text-dim) -mt-1">{t("seasonNow.localTime")}</p>
 
       <div className="flex gap-2 flex-wrap">
         <Link
           to={`/${year}/${race.RoundNumber}/analysis`}
           className="text-xs uppercase tracking-wide font-semibold px-3.5 py-2 rounded-md bg-(--color-accent) text-white hover:brightness-110 transition-[filter]"
         >
-          Прогноз моделі →
+          {t("seasonNow.prediction")} →
         </Link>
         <Link
           to={`/${year}/${race.RoundNumber}`}
           className="text-xs uppercase tracking-wide font-semibold px-3.5 py-2 rounded-md border border-(--color-line) text-(--color-text-dim) hover:text-(--color-text) hover:border-(--color-accent) transition-colors"
         >
-          Деталі етапу
+          {t("seasonNow.details")}
         </Link>
       </div>
     </section>
@@ -106,7 +107,7 @@ function NextEvent({ race, year, outline }) {
 function LastEvent({ race, year }) {
   const { data } = useApiQuery(() => api.getEventSummary(year, race.RoundNumber), [year, race.RoundNumber]);
   return (
-    <Section title={`Останній етап · ${race.RoundNumber}`} action={{ to: `/${year}/${race.RoundNumber}`, label: "Підсумок" }}>
+    <Section title={t("seasonNow.last", { round: race.RoundNumber })} action={{ to: `/${year}/${race.RoundNumber}`, label: t("seasonNow.summary") }}>
       <span className="font-semibold uppercase text-sm -mt-1">{race.EventName}</span>
       {data?.podium ? (
         <ol className="flex flex-col">
@@ -122,7 +123,7 @@ function LastEvent({ race, year }) {
           ))}
         </ol>
       ) : (
-        <p className="text-sm text-(--color-text-dim)">{data === null ? "Результатів ще немає в датасеті." : "…"}</p>
+        <p className="text-sm text-(--color-text-dim)">{data === null ? t("seasonNow.noResults") : "…"}</p>
       )}
     </Section>
   );
@@ -132,7 +133,7 @@ function Leaders({ progress, year }) {
   const top = progress.drivers.slice(0, 3);
   const leader = top[0];
   return (
-    <Section title={progress.final ? "Чемпіон сезону" : "Лідери чемпіонату"} action={{ to: `/${year}?tab=drivers`, label: "Таблиця" }}>
+    <Section title={progress.final ? t("seasonNow.champion") : t("seasonNow.leaders")} action={{ to: `/${year}?tab=drivers`, label: t("seasonNow.table") }}>
       <ol className="flex flex-col">
         {top.map((d) => (
           <li key={d.driver_ref}>
@@ -157,10 +158,10 @@ function Leaders({ progress, year }) {
 function SeasonProgress({ done, total }) {
   const pct = total ? Math.round((done / total) * 100) : 0;
   return (
-    <div className="flex flex-col gap-1.5" role="progressbar" aria-valuenow={done} aria-valuemin={0} aria-valuemax={total} aria-label="Прогрес сезону">
+    <div className="flex flex-col gap-1.5" role="progressbar" aria-valuenow={done} aria-valuemin={0} aria-valuemax={total} aria-label={t("seasonNow.progress")}>
       <div className="flex justify-between text-xs text-(--color-text-dim)">
         <span>
-          Етапів позаду: <span className="font-mono-data text-(--color-text)">{done}</span> з{" "}
+          {t("seasonNow.roundsDone")} <span className="font-mono-data text-(--color-text)">{done}</span> {t("common.of")}{" "}
           <span className="font-mono-data">{total}</span>
         </span>
         <span className="font-mono-data">{pct}%</span>
