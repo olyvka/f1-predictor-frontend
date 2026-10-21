@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useApiQuery } from "../hooks/useApiQuery";
@@ -10,6 +10,7 @@ import ErrorBanner from "../components/common/ErrorBanner";
 import Loader from "../components/common/Loader";
 import Badge from "../components/common/Badge";
 import StatTile from "../components/common/StatTile";
+import PredictionExplanation from "../components/analysis/PredictionExplanation";
 import { t } from "../i18n";
 
 // Підписи етапів і джерел — у словниках i18n (analysis.stage.*, analysis.source.*).
@@ -77,6 +78,10 @@ export default function AnalysisPage() {
     [year, round, event?.EventName]
   );
 
+  // Пілот, для якого показано пояснення; за замовчуванням — переможець прогнозу.
+  const [selectedId, setSelectedId] = useState(null);
+  const explanationRef = useRef(null);
+
   const handleRefresh = () => {
     forceRefreshRef.current = true;
     refetch();
@@ -123,6 +128,13 @@ export default function AnalysisPage() {
   const sortedPredictions = [...(data?.predictions || [])].sort(
     (a, b) => (a.predicted_position ?? 999) - (b.predicted_position ?? 999)
   );
+
+  const selected = sortedPredictions.find((p) => p.driver_id === selectedId) || sortedPredictions[0];
+  const selectDriver = (row) => {
+    setSelectedId(row.driver_id);
+    // Пояснення — під таблицею: для пілотів унизу таблиці його інакше не видно.
+    requestAnimationFrame(() => explanationRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }));
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -183,7 +195,18 @@ export default function AnalysisPage() {
 
             <div>
               <h3 className="text-xs uppercase tracking-widest text-(--color-text-dim) mb-2">{t("tabs.prediction")}</h3>
-              <ResultsTable rows={sortedPredictions} columns={columns} emptyLabel={t("analysis.empty")} />
+              {sortedPredictions.length > 0 && <p className="text-xs text-(--color-text-dim) mb-2">{t("analysis.clickHint")}</p>}
+              <ResultsTable
+                rows={sortedPredictions}
+                columns={columns}
+                emptyLabel={t("analysis.empty")}
+                onRowClick={selectDriver}
+                isSelected={(row) => row.driver_id === selected?.driver_id}
+              />
+            </div>
+
+            <div ref={explanationRef} className="scroll-mt-4">
+              <PredictionExplanation prediction={selected} predictions={sortedPredictions} />
             </div>
 
             {(data.feature_importance?.ranker?.length > 0 || data.feature_importance?.dnf_classifier?.length > 0) && (

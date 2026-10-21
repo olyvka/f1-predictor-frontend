@@ -3,10 +3,13 @@ import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, useParams } 
 import { useTranslation } from "react-i18next";
 import { LANGUAGES } from "./i18n";
 import { BreadcrumbProvider } from "./context/BreadcrumbProvider";
+import { AuthProvider } from "./context/AuthProvider";
+import AccountMenu from "./components/common/AccountMenu";
 import { useBreadcrumbItems } from "./hooks/useBreadcrumb";
 import Breadcrumb from "./components/common/Breadcrumb";
 import Loader from "./components/common/Loader";
 import SeasonPage from "./pages/SeasonPage";
+import LandingPage from "./pages/LandingPage";
 
 // Стартова сторінка (календар) вантажиться одразу, решта — окремими
 // чанками: Recharts важить більше за весь інший застосунок, а потрібен
@@ -18,6 +21,7 @@ const AnalysisPage = lazy(() => import("./pages/AnalysisPage"));
 const SessionPage = lazy(() => import("./pages/SessionPage"));
 const DriverPage = lazy(() => import("./pages/DriverPage"));
 const ComparePage = lazy(() => import("./pages/ComparePage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -72,6 +76,15 @@ function TopBar() {
       )}
 
       <div className="ml-auto flex items-center gap-2 shrink-0">
+        {/* На лендінгу (без хлібних крихт) — шлях у дашборд. */}
+        {items.length === 0 && (
+          <Link
+            to={`/${CURRENT_YEAR}`}
+            className="text-xs uppercase tracking-wide font-semibold text-(--color-text-dim) hover:text-(--color-text) transition-colors px-2.5 py-1.5 rounded-md hover:bg-(--color-surface)"
+          >
+            {t("landing.dashboard")}
+          </Link>
+        )}
         {items.length > 1 && (
           <button
             onClick={() => navigate(-1)}
@@ -81,6 +94,7 @@ function TopBar() {
           </button>
         )}
         <LanguageSwitch />
+        <AccountMenu />
       </div>
     </header>
   );
@@ -95,6 +109,7 @@ export default function App() {
   const { t, i18n } = useTranslation();
   return (
     <BrowserRouter>
+      <AuthProvider>
       <BreadcrumbProvider>
         <div className="min-h-screen">
           <TopBar />
@@ -105,7 +120,8 @@ export default function App() {
           <main key={i18n.language} className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
             <Suspense fallback={<Loader label={t("common.loadingPage")} />}>
               <Routes>
-                <Route path="/" element={<Navigate to={`/${CURRENT_YEAR}`} replace />} />
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<LoginPage />} />
                 <Route path="/:year" element={<SeasonPage />} />
                 {/* Чемпіонат тепер — вкладки на сторінці сезону; стара адреса веде туди. */}
                 <Route path="/:year/standings" element={<StandingsRedirect />} />
@@ -125,6 +141,7 @@ export default function App() {
           </main>
         </div>
       </BreadcrumbProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

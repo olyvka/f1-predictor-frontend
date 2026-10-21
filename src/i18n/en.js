@@ -449,7 +449,118 @@ const en = {
     "quality": "Model quality",
     "empty": "No prediction.",
     "importancePosition": "Feature importance — position",
-    "importanceDnf": "Feature importance — DNF"
+    "importanceDnf": "Feature importance — DNF",
+    "clickHint": "Click a driver to see why the model put them there"
+  },
+  "landing": {
+    "dashboard": "Dashboard",
+    "eyebrow": "Formula 1 analytics",
+    "seasonEyebrow": "{{year}} season · {{done}} of {{total}} rounds done",
+    "titleA": "Formula 1",
+    "titleB": "in numbers and charts",
+    "lead": "An analytics dashboard for the season: results, laps, pit stops, weather, championship standings and driver ratings — with data from 1950 up to the latest round. Plus a machine-learning model that predicts the race and explains its prediction.",
+    "openDashboard": "Open dashboard",
+    "nextPrediction": "Next race prediction",
+    "nextRace": "Next race · round {{round}}",
+    "compute": "Compute prediction",
+    "seasonOver": "The {{year}} season is over — results and predictions are in the dashboard.",
+    "mTop1": "Picks the winner",
+    "mTop1Hint": "share of races where predicted P1 won",
+    "mPodium": "Podium",
+    "mPodiumHint": "average share of the top 3 guessed",
+    "mTop10": "Points zone",
+    "mTop10Hint": "average share of the top 10 guessed",
+    "mMae": "Error",
+    "mMaeHint": "average difference from the finish, places",
+    "lastCheck": "Last race, {{race}}: the model got {{hits}} of 3 podium finishers right.",
+    "compare": "Prediction vs result",
+    "steps": {
+      "data": {
+        "title": "Data",
+        "text": "Results, qualifying, pit stops and laps since 1950, plus FastF1 and OpenF1 for recent rounds."
+      },
+      "features": {
+        "title": "Features",
+        "text": "67 features per driver: qualifying, driver and team form, circuit history, practice pace, weather."
+      },
+      "model": {
+        "title": "Model",
+        "text": "A LightGBM ranker and XGBoost order the drivers, a separate classifier estimates retirement risk."
+      },
+      "explain": {
+        "title": "Explanation",
+        "text": "SHAP splits every prediction into feature contributions: what moved a driver up and what held them back."
+      }
+    },
+    "featuresEyebrow": "Dashboard",
+    "featuresTitle": "Everything about the season in one place",
+    "ctaTitle": "Ready for the next race?",
+    "ctaText": "Calendar, standings, sessions and model predictions — all in one place.",
+    "standings": "Championship standings",
+    "facts": {
+      "data": "77 seasons of data",
+      "sessions": "Laps, pit stops, weather",
+      "models": "+ ML race prediction"
+    },
+    "mlBadge": "ML pick",
+    "modelPicks": "Model's favourite:",
+    "featuresLead": "From the calendar down to every race lap: data that is usually scattered across different sites, combined and visualised.",
+    "features": {
+      "calendar": {
+        "title": "Calendar and results",
+        "text": "Every round with circuit maps, winners, podiums and the schedule in your time zone."
+      },
+      "sessions": {
+        "title": "Session analysis",
+        "text": "Lap-by-lap pace, track evolution, speed trap, pit stops and weather — for practice, qualifying and the race."
+      },
+      "drivers": {
+        "title": "Drivers",
+        "text": "Standings, points by round, a 0–100 season rating, teammate duels and career."
+      },
+      "teams": {
+        "title": "Teams",
+        "text": "Constructors' standings, team form and each driver's share of the points."
+      },
+      "compare": {
+        "title": "Driver comparison",
+        "text": "Laps, sectors, gaps through the race and tyre strategies of two or more drivers side by side."
+      },
+      "history": {
+        "title": "Circuit history",
+        "text": "Past winners, circuit facts and each driver's record there."
+      }
+    },
+    "bonusEyebrow": "Bonus · machine learning",
+    "bonusTitle": "A race prediction that explains itself",
+    "bonusLead": "On top of the analytics runs a model that predicts every driver's finish — and shows which factors put them in that place.",
+    "qualityNote": "Quality measured on test seasons the model never saw during training."
+  },
+  "explain": {
+    "title": "Why P{{position}} — {{driver}}",
+    "better": "Expected position {{expected}} — {{value}} places better than the average driver in the field.",
+    "worse": "Expected position {{expected}} — {{value}} places worse than the average driver in the field.",
+    "gapNext": "Closest rival — {{driver}} (P{{position}}), {{value}} places apart.",
+    "gapPrev": "Ahead — {{driver}} (P{{position}}), {{value}} places apart.",
+    "tight": "A close call: these places can easily swap.",
+    "dnf": "Retirement probability: {{value}}% (a separate model, it does not affect the predicted place).",
+    "byGroup": "What drives it",
+    "topFactors": "Main factors and their values",
+    "other": "All other factors",
+    "noData": "no data",
+    "yes": "yes",
+    "no": "no",
+    "missing": "This prediction was saved before explanations existed. Click “Refresh prediction” to see what influenced it.",
+    "method": "Numbers are places relative to the average driver of this round: “+” pulls towards P1, “−” down. Contributions come from the model's own trees (SHAP), so they explain this exact prediction; the total is approximate (±1 place) because part of the model ranks drivers rather than predicting a position directly. “No data” means the feature is not known yet (e.g. qualifying hasn't happened) — the model accounts for that too.",
+    "group": {
+      "quali": "Qualifying and grid",
+      "driver": "Driver form",
+      "team": "Team form",
+      "track": "Circuit",
+      "practice": "Practice",
+      "weather": "Weather",
+      "championship": "Championship"
+    }
   },
   "sessionPage": {
     "classifiedShort": "Cl.",
@@ -497,6 +608,53 @@ const en = {
     "bestLapDelta": "Best lap difference",
     "fastestLaps": "Fastest laps",
     "strategies": "Tyre strategies"
+  },
+  "auth": {
+    "account": "Account",
+    "signOut": "Sign out",
+    "google": "Continue with Google",
+    "or": "or",
+    "name": "Name (optional)",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "At least 6 characters.",
+    "forgot": "Forgot password?",
+    "noAccount": "No account yet?",
+    "haveAccount": "Already have an account?",
+    "backToSignin": "Back to sign in",
+    "backHome": "Back to home",
+    "signin": {
+      "title": "Sign in",
+      "short": "Sign in",
+      "lead": "Sign in to save your F1 Fantasy team and the advice for every Grand Prix.",
+      "submit": "Sign in"
+    },
+    "signup": {
+      "title": "Sign up",
+      "lead": "The account is free: your budget, team and advice history for every round are saved.",
+      "submit": "Create account"
+    },
+    "reset": {
+      "title": "Reset password",
+      "lead": "We'll email you a link to set a new password.",
+      "submit": "Send link",
+      "sent": "If an account for {{email}} exists, the email is on its way. Check your spam folder too."
+    },
+    "errors": {
+      "invalid-credential": "Wrong email or password.",
+      "wrong-password": "Wrong email or password.",
+      "user-not-found": "Wrong email or password.",
+      "email-already-in-use": "An account with this email already exists — try signing in.",
+      "weak-password": "Password is too weak: at least 6 characters.",
+      "invalid-email": "Invalid email.",
+      "too-many-requests": "Too many attempts. Please try again later.",
+      "network-request-failed": "Can't reach the sign-in server.",
+      "popup-blocked": "The browser blocked the Google window — allow pop-ups for this site.",
+      "operation-not-allowed": "This sign-in method isn't enabled in Firebase yet.",
+      "configuration-not-found": "Sign-in isn't set up in Firebase yet (Authentication is disabled).",
+      "unauthorized-domain": "This domain isn't in the authorized domains of Firebase Authentication.",
+      "default": "Sign-in failed. Please try again."
+    }
   }
 };
 

@@ -12,7 +12,7 @@ import { t } from "../../i18n";
 
 const SESSION_TIME = { weekday: "short", hour: "2-digit", minute: "2-digit" };
 
-function Countdown({ ms }) {
+export function Countdown({ ms }) {
   const left = splitDuration(ms);
   const units = [
     [left.days, t("units.d")],

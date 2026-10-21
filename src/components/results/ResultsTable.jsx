@@ -1,4 +1,6 @@
-export default function ResultsTable({ title, rows, columns, emptyLabel }) {
+// onRowClick/isSelected — опційно: рядок стає кнопкою вибору (напр. пілот,
+// для якого показати пояснення прогнозу).
+export default function ResultsTable({ title, rows, columns, emptyLabel, onRowClick, isSelected }) {
   return (
     <div className="border border-(--color-line) rounded-md overflow-hidden">
       {title && (
@@ -26,9 +28,21 @@ export default function ResultsTable({ title, rows, columns, emptyLabel }) {
             <tbody className="font-mono-data">
               {rows.map((row, i) => (
                 <tr
-                  key={row.DriverNumber ?? row.Abbreviation ?? i}
-                  className="border-t border-(--color-line) hover:bg-(--color-surface-hover) transition-colors"
-                  style={row.TeamColor ? { borderLeft: `3px solid #${row.TeamColor}` } : undefined}
+                  key={row.DriverNumber ?? row.Abbreviation ?? row.driver_id ?? i}
+                  className={`border-t border-(--color-line) hover:bg-(--color-surface-hover) transition-colors ${
+                    onRowClick ? "cursor-pointer" : ""
+                  } ${isSelected?.(row) ? "bg-(--color-surface-hover)" : ""}`}
+                  style={
+                    isSelected?.(row)
+                      ? { boxShadow: "inset 3px 0 0 var(--color-accent)" }
+                      : row.TeamColor
+                        ? { borderLeft: `3px solid #${row.TeamColor}` }
+                        : undefined
+                  }
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  onKeyDown={onRowClick ? (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onRowClick(row)) : undefined}
+                  tabIndex={onRowClick ? 0 : undefined}
+                  aria-selected={onRowClick ? Boolean(isSelected?.(row)) : undefined}
                 >
                   {columns.map((col) => (
                     <td key={col.key} className="px-4 py-2 whitespace-nowrap">
