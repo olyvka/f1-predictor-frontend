@@ -178,7 +178,7 @@ export class ReplaySource {
     this.closed = false;
     const url = this.buildUrl(offset);
     this.log?.("connect", { id, url });
-    this._setStatus("connecting", { connId: id, error: null, reconnect: null, mode: this.mode });
+    this._setStatus("connecting", { connId: id, error: null, reconnect: null, mode: this.mode, speed: this.speed });
 
     let ws;
     try {

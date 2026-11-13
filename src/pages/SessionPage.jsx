@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate, useOutletContext, useParams, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useOutletContext, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useApiQuery } from "../hooks/useApiQuery";
 import { useElapsed } from "../hooks/useElapsed";
@@ -24,7 +24,31 @@ import ErrorBanner from "../components/common/ErrorBanner";
 import Loader from "../components/common/Loader";
 import Badge from "../components/common/Badge";
 import { useSetBreadcrumb } from "../hooks/useBreadcrumb";
+import { isReplayYear, isSessionFinished, replayPath } from "../live/availability";
 import { t } from "../i18n";
+
+// Вхід на екран Replay (L4): лише для завершених сесій сезонів від 2023
+// (OpenF1); для старіших - неактивна кнопка з поясненням.
+function ReplayButton({ year, round, session, sessionMeta }) {
+  if (!sessionMeta || !isSessionFinished(sessionMeta.date)) return null;
+  const cls = "inline-flex items-center gap-1.5 px-3 py-1.5 text-xs uppercase tracking-wide font-semibold rounded-md border";
+  if (!isReplayYear(year)) {
+    return (
+      <span className={`${cls} border-(--color-line) text-(--color-text-dim)/60 cursor-not-allowed`} title={t("live.common.replayUnavailableYear")} aria-disabled="true">
+        ▶ {t("live.common.watchReplay")}
+      </span>
+    );
+  }
+  return (
+    <Link
+      to={replayPath(year, round, session)}
+      title={t("live.common.watchReplayHint")}
+      className={`${cls} border-(--color-accent) text-(--color-text) hover:bg-(--color-accent) hover:text-white transition-colors`}
+    >
+      ▶ {t("live.common.watchReplay")}
+    </Link>
+  );
+}
 
 function buildColumns(category, year, round, session) {
   const driverCol = {
@@ -272,9 +296,12 @@ export default function SessionPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold uppercase text-(--color-text-dim)">
-          {sessionMeta?.name || session}
-        </h3>
+        <div className="flex items-center gap-3 flex-wrap">
+          <h3 className="text-sm font-bold uppercase text-(--color-text-dim)">
+            {sessionMeta?.name || session}
+          </h3>
+          <ReplayButton year={year} round={round} session={session} sessionMeta={sessionMeta} />
+        </div>
         <div className="flex gap-1 bg-(--color-surface) border border-(--color-line) rounded-md p-1">
           {tabs.map((t) => (
             <button
