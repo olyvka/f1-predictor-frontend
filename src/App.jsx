@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LANGUAGES } from "./i18n";
 import { BreadcrumbProvider } from "./context/BreadcrumbProvider";
@@ -22,6 +22,7 @@ const SessionPage = lazy(() => import("./pages/SessionPage"));
 const DriverPage = lazy(() => import("./pages/DriverPage"));
 const ComparePage = lazy(() => import("./pages/ComparePage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
+const LivePage = lazy(() => import("./pages/LivePage"));
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -105,8 +106,24 @@ function StandingsRedirect() {
   return <Navigate to={`/${year}?tab=drivers`} replace />;
 }
 
+// Екран Live / Replay займає всю ширину вікна (карта + таблиця + панелі),
+// решта сторінок - звична колонка max-w-6xl.
+function AppMain({ children }) {
+  const { i18n } = useTranslation();
+  const { pathname } = useLocation();
+  const fullBleed = pathname.startsWith("/live/");
+  return (
+    // key — при зміні мови вміст перемонтовується, тож дати й підписи
+    // (зокрема в графіках, що не підписані на i18n) оновлюються всі
+    // одразу; дані беруться з кешу браузера, без нових запитів.
+    <main key={i18n.language} className={fullBleed ? "px-2 sm:px-3 py-2" : "max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8"}>
+      {children}
+    </main>
+  );
+}
+
 export default function App() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   return (
     <BrowserRouter>
       <AuthProvider>
@@ -114,14 +131,13 @@ export default function App() {
         <div className="min-h-screen">
           <TopBar />
 
-          {/* key — при зміні мови вміст перемонтовується, тож дати й підписи
-              (зокрема в графіках, що не підписані на i18n) оновлюються всі
-              одразу; дані беруться з кешу браузера, без нових запитів. */}
-          <main key={i18n.language} className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <AppMain>
             <Suspense fallback={<Loader label={t("common.loadingPage")} />}>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
+                {/* Replay / live сесії (OpenF1, сезони від 2023): ?speed=&offset=&source=fixture */}
+                <Route path="/live/:year/:round/:session" element={<LivePage />} />
                 <Route path="/:year" element={<SeasonPage />} />
                 {/* Чемпіонат тепер — вкладки на сторінці сезону; стара адреса веде туди. */}
                 <Route path="/:year/standings" element={<StandingsRedirect />} />
@@ -138,7 +154,7 @@ export default function App() {
                 <Route path="*" element={<Navigate to={`/${CURRENT_YEAR}`} replace />} />
               </Routes>
             </Suspense>
-          </main>
+          </AppMain>
         </div>
       </BreadcrumbProvider>
       </AuthProvider>

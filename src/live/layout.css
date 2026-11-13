@@ -1,0 +1,86 @@
+/* Сітка екрана Live (LIVE_UI_RESEARCH §3). Брейкпоінти збігаються з Tailwind:
+   md = 768 (планшет), xl = 1280 (desktop), 1680 (широкий desktop).
+   Кожен віджет змонтований один раз; на телефоні/планшеті невидимі вкладки
+   ховаються класами max-md:hidden / max-xl:hidden у LivePage.
+   Усе в @layer components, щоб утиліти Tailwind (max-md:hidden тощо) перемагали. */
+
+@layer components {
+  .live-screen {
+    /* Висота верхнього бару застосунку (TopBar у App.jsx) - для липких зон і висоти сітки. */
+    --live-topbar-h: 55px; /* уточнюється вимірюванням у LivePage */
+    position: relative;
+  }
+
+  .live-grid {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "top" "tabs" "tower" "map" "side" "controls";
+    transition: opacity 150ms linear;
+  }
+  .live-grid[data-seeking="true"] {
+    opacity: 0.6;
+  }
+
+  .live-area-top { grid-area: top; min-width: 0; }
+  .live-area-tabs { grid-area: tabs; }
+  .live-area-tower { grid-area: tower; min-height: 0; min-width: 0; }
+  .live-area-map { grid-area: map; min-height: 0; min-width: 0; }
+  .live-area-side { grid-area: side; min-height: 0; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .live-area-side > .live-panel { flex: 1 1 0; min-height: 0; }
+  .live-area-controls { grid-area: controls; min-width: 0; }
+
+  /* Телефон: таблиця за замовчуванням, вкладки, липкий статус і міні-плеєр. */
+  @media (max-width: 767.98px) {
+    .live-area-top,
+    .live-area-tabs {
+      position: sticky;
+      z-index: 5;
+      background: var(--color-bg);
+    }
+    .live-area-top { top: var(--live-topbar-h); }
+    .live-area-tabs { top: calc(var(--live-topbar-h) + var(--live-top-h, 0px)); }
+    .live-area-map { height: min(70dvh, 560px); }
+    .live-area-side > .live-panel { flex: none; }
+    .live-area-controls {
+      position: sticky;
+      bottom: 0;
+      z-index: 5;
+      background: var(--color-bg);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+
+  /* Планшет: таблиця | карта зверху, «Пілот/Події» вкладками під картою. */
+  @media (min-width: 768px) {
+    .live-grid {
+      height: calc(100dvh - var(--live-topbar-h) - 16px);
+      grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1.2fr) minmax(0, 1fr) auto;
+      grid-template-areas:
+        "top top"
+        "tower map"
+        "tower side"
+        "controls controls";
+    }
+  }
+
+  /* Desktop: три колонки - таблиця | карта | пілот у фокусі + race control. */
+  @media (min-width: 1280px) {
+    .live-grid {
+      grid-template-columns: minmax(480px, 540px) minmax(420px, 1fr) 340px;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "top top top"
+        "tower map side"
+        "controls controls controls";
+    }
+    .live-area-side > .live-panel:first-of-type { flex-grow: 1.2; }
+  }
+
+  @media (min-width: 1680px) {
+    .live-grid {
+      grid-template-columns: 560px minmax(420px, 1fr) 420px;
+    }
+  }
+}
