@@ -2,6 +2,8 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import uk from "./uk";
 import en from "./en";
+// Рядки екрана Live - окремими файлами на віджет (src/i18n/live/), під ключем `live`.
+import { liveUk, liveEn } from "./live";
 
 export const LANGUAGES = ["uk", "en"];
 const STORAGE_KEY = "lang";
@@ -23,7 +25,7 @@ function detectLanguage() {
 }
 
 i18n.use(initReactI18next).init({
-  resources: { uk: { translation: uk }, en: { translation: en } },
+  resources: { uk: { translation: { ...uk, live: liveUk } }, en: { translation: { ...en, live: liveEn } } },
   lng: detectLanguage(),
   fallbackLng: "uk",
   interpolation: { escapeValue: false }, // React сам екранує

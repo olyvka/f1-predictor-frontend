@@ -1,0 +1,8 @@
+// Race control (агент D): RaceControlPanel.jsx
+// Доступ: t("live.events.<ключ>"). Цей файл редагує лише власник віджета.
+const events = {
+  title: "Race control",
+  empty: "Повідомлень від дирекції ще не було",
+};
+
+export default events;

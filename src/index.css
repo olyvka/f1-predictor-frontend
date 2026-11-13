@@ -16,6 +16,42 @@
   --color-warn: #f5a623; /* середня впевненість, DEMO */
   --color-danger: #ef4444; /* "-N" позицій, червоний прапор */
 
+  /* ---------- Live / Replay (екран /live, LIVE_UI_RESEARCH §5) ----------
+     Лише те, чого немає в базовій палітрі. Колір ніколи не єдиний носій
+     сенсу: таймінг дублюється плашкою/жирністю, прапори - текстом, шини -
+     літерою (див. src/live/README.md). */
+  /* Таймінг: фіолетовий - найкраще в сесії (лише цей стан має плашку-фон),
+     зелений - особисте найкраще (+ напівжирний), жовтий - лише міні-сектори. */
+  --color-timing-purple: #b57bff; /* текст на темному, 6.3:1 */
+  --color-timing-purple-bg: #7c3aed; /* плашка з білим текстом, 5.7:1 */
+  --color-timing-green: #2bd46a;
+  --color-timing-yellow: #f5c518; /* не для тексту */
+  --color-pit-lane: #4c8dff; /* піт-лейн: міні-сектор 2064, чіп PIT, машина в боксах */
+  /* Прапори і статус траси (текст на плашці - --color-flag-ink, якщо фон світлий). */
+  --color-flag-green: #16a34a;
+  --color-flag-yellow: #facc15;
+  --color-flag-double-yellow: #facc15; /* відрізняється формою (дві смуги), не кольором */
+  --color-flag-sc: #f59e0b; /* SC і VSC (VSC - зі штриховкою) */
+  --color-flag-red: #dc2626;
+  --color-flag-blue: #3b82f6;
+  --color-flag-chequered-light: #f2f3f5;
+  --color-flag-chequered-dark: #0a0a0d;
+  --color-flag-ink: #111827; /* текст на жовтому/бурштиновому */
+  /* Шини (кільце бейджа; компаунд визначає літера S/M/H/I/W/?). */
+  --color-tyre-soft: #e8102a;
+  --color-tyre-medium: #ffd12e;
+  --color-tyre-hard: #f2f2f2;
+  --color-tyre-inter: #43b02a;
+  --color-tyre-wet: #1e88e5;
+  --color-tyre-unknown: #6b7280;
+  /* Підсвітка рядка таблиці при зміні позиції (згасає ~1.5 с) і зона вибування. */
+  --color-row-gain: rgb(62 207 126 / 0.18);
+  --color-row-loss: rgb(239 68 68 / 0.18);
+  --color-elimination-bg: rgb(239 68 68 / 0.12);
+  /* Карта траси. */
+  --color-track: #3a4252;
+  --color-track-edge: #566074;
+
   --font-body: 'Inter', system-ui, sans-serif;
   --font-display: 'Roboto Condensed', 'Arial Narrow', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -40,6 +76,23 @@ h1, h2, h3, h4, .uppercase {
 
 .font-mono-data {
   font-family: var(--font-mono);
+}
+
+/* Палітра для дальтоніків (Okabe–Ito) для екрана Live: віджет вмикає
+   класом .live-cb на контейнері (налаштування в localStorage). Міні-сектори
+   в цьому режимі ще й різної висоти (LIVE_UI_RESEARCH §5.2). */
+.live-cb {
+  --color-timing-purple: #cc79a7;
+  --color-timing-purple-bg: #a3487f;
+  --color-timing-green: #009e73;
+  --color-timing-yellow: #f0e442;
+  --color-pit-lane: #56b4e9;
+}
+
+/* Числа, що оновлюються наживо: однакова ширина цифр, колонки не «стрибають». */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
 
 /* Видимий фокус лише для клавіатури — мишею кільце не з'являється. */
