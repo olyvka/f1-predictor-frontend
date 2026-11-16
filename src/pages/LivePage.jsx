@@ -28,6 +28,7 @@ import TimingTower from "../components/live/TimingTower";
 import TrackMap from "../components/live/TrackMap";
 import FocusPanel from "../components/live/FocusPanel";
 import RaceControlPanel from "../components/live/RaceControlPanel";
+import RadioPanel from "../components/live/RadioPanel";
 import ReplayControls from "../components/live/ReplayControls";
 import ConnectionOverlay from "../components/live/ConnectionOverlay";
 import { isReplayYear } from "../live/availability";
@@ -148,6 +149,7 @@ export function LiveScreen({ year, round, session, kind: kindProp, onWaiting }) 
   }, [store, kind, fixtureName, year, round, session, initial, lang]);
 
   useReplayUrlSync(store, setSearchParams);
+  useRadioHeardStorage(store);
 
   const params = useMemo(() => ({ year, round, session, sourceKind: kind }), [year, round, session, kind]);
   return (
@@ -155,6 +157,43 @@ export function LiveScreen({ year, round, session, kind: kindProp, onWaiting }) 
       <LiveLayout fixture={kind === "fixture"} />
     </LiveProvider>
   );
+}
+
+// Позначки «прослухано» для радіо - у localStorage на сесію (session_key):
+// переживають перемотування (нове з'єднання) і перезавантаження сторінки.
+const RADIO_KEY = (sessionKey) => `live.radioHeard.${sessionKey}`;
+function useRadioHeardStorage(store) {
+  useEffect(() => {
+    let key = null;
+    let saved = null;
+    const sync = () => {
+      const s = store.getState();
+      const sk = s.session?.session_key;
+      if (sk == null) return;
+      if (sk !== key) {
+        key = sk;
+        let map = {};
+        try {
+          map = JSON.parse(localStorage.getItem(RADIO_KEY(sk)) || "{}") || {};
+        } catch {
+          map = {};
+        }
+        saved = map;
+        store.loadRadioHeard(map);
+        return;
+      }
+      if (s.radioHeard !== saved) {
+        saved = s.radioHeard;
+        try {
+          localStorage.setItem(RADIO_KEY(sk), JSON.stringify(s.radioHeard));
+        } catch {
+          /* сховище недоступне - позначки лише до перезавантаження */
+        }
+      }
+    };
+    sync();
+    return store.subscribe(["meta", "radio"], sync);
+  }, [store]);
 }
 
 // Адреса відображає поточний момент (offset, speed), щоб посилання відкривало
@@ -187,14 +226,19 @@ function useReplayUrlSync(store, setSearchParams) {
   }, [store, setSearchParams]);
 }
 
-const PANELS = ["positions", "map", "driver", "events"];
+const PANELS = ["positions", "map", "driver", "events", "radio"];
+// Планшет: під картою одна з вкладок «Пілот / Події / Радіо».
+const SIDE_PANELS = ["driver", "events", "radio"];
 
 function LiveLayout({ fixture }) {
   const { t } = useTranslation();
   const layout = useLiveLayout();
   const seeking = useLiveSelector("playback", (s) => !!s.playback.seeking);
-  // Вкладка на телефоні (усі 4) і на планшеті (Пілот/Події під картою).
+  // Вкладка на телефоні (усі 5) і на планшеті (Пілот/Події/Радіо під картою).
   const [panel, setPanel] = useState("positions");
+  const sideTab = SIDE_PANELS.includes(panel) ? panel : "driver";
+  // Клас видимості панелі: на телефоні - лише своя вкладка, на планшеті - своя бічна.
+  const panelClass = (id) => `${panel !== id ? "max-md:hidden" : ""} ${sideTab !== id ? "md:max-xl:hidden" : ""}`;
   const topRef = useRef(null);
   const [colorBlind, toggleColorBlind] = useColorBlind();
   const controlsRef = useRef(null);
@@ -220,15 +264,15 @@ function LiveLayout({ fixture }) {
   }, []);
 
   const tabButton = (id, { side = false } = {}) => {
-    // На планшеті «Пілот» активний для будь-якої вкладки, крім «Події».
-    const active = side && id === "driver" ? panel !== "events" : panel === id;
+    // На планшеті «Пілот» активний для будь-якої вкладки, крім «Події» й «Радіо».
+    const active = side ? sideTab === id : panel === id;
     return (
       <button
         key={id}
         role="tab"
         aria-selected={active}
         onClick={() => setPanel(id)}
-        className={`flex-1 px-3 text-xs uppercase tracking-wide rounded transition-colors ${side ? "py-1" : "py-2 min-h-11"} ${
+        className={`flex-1 px-2 text-xs uppercase tracking-wide rounded transition-colors ${side ? "py-1" : "py-2 min-h-11"} ${
           active ? "bg-(--color-accent) text-white font-semibold" : "text-(--color-text-dim) hover:text-(--color-text)"
         }`}
       >
@@ -278,17 +322,18 @@ function LiveLayout({ fixture }) {
         <div className={`live-area-map ${panel !== "map" ? "max-md:hidden" : ""}`} role="tabpanel">
           <TrackMap layout={layout} />
         </div>
-        <div className={`live-area-side ${panel !== "driver" && panel !== "events" ? "max-md:hidden" : ""}`}>
-          <nav className="hidden md:flex xl:hidden gap-1 bg-(--color-surface) border border-(--color-line) rounded-md p-1" role="tablist" aria-label={t("live.common.tabs.label")}>
-            {tabButton("driver", { side: true })}
-            {tabButton("events", { side: true })}
-          </nav>
-          <div className={`live-panel ${panel === "events" ? "max-xl:hidden" : ""}`} role="tabpanel">
-            <FocusPanel layout={layout} />
-          </div>
-          <div className={`live-panel ${panel !== "events" ? "max-xl:hidden" : ""}`} role="tabpanel">
-            <RaceControlPanel layout={layout} />
-          </div>
+        <nav className="live-area-sidetabs hidden md:flex xl:hidden gap-1 bg-(--color-surface) border border-(--color-line) rounded-md p-1" role="tablist" aria-label={t("live.common.tabs.label")}>
+          {SIDE_PANELS.map((id) => tabButton(id, { side: true }))}
+        </nav>
+        {/* Desktop: пілот праворуч на всю висоту; race control і радіо - поруч під картою. */}
+        <div className={`live-panel live-area-focus ${panelClass("driver")}`} role="tabpanel">
+          <FocusPanel layout={layout} />
+        </div>
+        <div className={`live-panel live-area-events ${panelClass("events")}`} role="tabpanel">
+          <RaceControlPanel layout={layout} />
+        </div>
+        <div className={`live-panel live-area-radio ${panelClass("radio")}`} role="tabpanel">
+          <RadioPanel layout={layout} />
         </div>
 
         <div ref={controlsRef} className="live-area-controls">

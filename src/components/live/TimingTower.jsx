@@ -14,7 +14,7 @@
 // Чиста логіка - TimingTower/logic.js, хуки руху - TimingTower/hooks.js.
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useFocus, useLiveSelector, usePredictions, useReplay, useSession, useTower } from "../../live/hooks";
+import { useFocus, useLiveSelector, usePredictions, useReplay, useSession, useTeamRadio, useTower } from "../../live/hooks";
 import TowerRow from "./TimingTower/TowerRow";
 import { useFocusAnnouncer, useLapGlow, useReducedMotion, useRowMotion, useStoredState, useTowerOrder } from "./TimingTower/hooks";
 import {
@@ -52,6 +52,8 @@ export default function TimingTower({ layout = "desktop" }) {
   const [gapMode, setGapMode] = useStoredState("live.tower.gapMode", DEFAULT_GAP_MODE, (v) => GAP_MODES.includes(v));
   const [showPred, setShowPred] = useStoredState("live.tower.showPrediction", true, (v) => typeof v === "boolean");
   const predVisible = isRace && showPred && layoutHasPrediction(layout, isRace);
+  // Непрослухане радіо, що прийшло під час перегляду - позначка біля пілота.
+  const radio = useTeamRadio();
   const preds = usePredictions({ enabled: predVisible && ready });
 
   const columns = useMemo(() => columnsFor(layout, isRace, { showPrediction: predVisible }), [layout, isRace, predVisible]);
@@ -307,6 +309,7 @@ export default function TimingTower({ layout = "desktop" }) {
                     personalSectors={personalBest[n]?.sectors}
                     prediction={predVisible ? predictionCell(preds.byNumber[n], row.position) : null}
                     predStatus={preds.status}
+                    radioNew={radio.unheardNew[n] || 0}
                   />
                 );
               })}

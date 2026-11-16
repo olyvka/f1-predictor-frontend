@@ -384,3 +384,28 @@ describe("store: доповнення після інтеграції", () => {
     expect(store.getState().focus).toBeNull();
   });
 });
+
+describe("store: командне радіо", () => {
+  it("кліпи без дублікатів, позначка catch-up, прослухане переживає нове з'єднання", () => {
+    const { store } = makeStore();
+    const session = sessionOf(race);
+    store.receive(session);
+    const start = parseTime(session.replay.start);
+    const iso = (s) => new Date(start + s * 1000).toISOString();
+    const clip = (n, s, url) => ({ topic: "team_radio", data: { date: iso(s), driver_number: n, recording_url: url } });
+    store.receive({ type: "batch", catchup: true, clock: iso(0), events: [clip(44, -60, "u1")] });
+    store.receive(batch(iso(10), [clip(1, 5, "u2"), clip(1, 5, "u2")]));
+    let s = store.getState();
+    expect(s.radio.map((r) => [r.recording_url, r.catchup])).toEqual([["u1", true], ["u2", false]]);
+
+    store.setRadioHeard("u2");
+    expect(store.getState().radioHeard).toEqual({ u2: true });
+    store.setRadioHeard(["u1", "u2"], false);
+    expect(store.getState().radioHeard).toEqual({});
+    store.setRadioHeard("u1");
+    store.receive(session); // перемотування: нове з'єднання
+    s = store.getState();
+    expect(s.radio).toEqual([]);
+    expect(s.radioHeard).toEqual({ u1: true });
+  });
+});

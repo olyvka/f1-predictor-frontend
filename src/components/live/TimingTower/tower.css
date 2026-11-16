@@ -547,3 +547,22 @@
     transition: none;
   }
 }
+
+/* Нове непрослухане радіо пілота (RadioPanel): мікрофон + кількість, колір акценту. */
+.lt-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  flex: none;
+}
+.lt-radio svg {
+  width: 10px;
+  height: 10px;
+}

@@ -21,7 +21,7 @@ import { currentStint, tyreAge, isUsedSet } from "./tyres";
 import { TimeRing } from "./ringBuffer";
 
 /** Канали підписки (див. README, «Канали»). */
-export const CHANNELS = ["meta", "playback", "table", "focus", "rc", "weather", "telemetry"];
+export const CHANNELS = ["meta", "playback", "table", "focus", "rc", "weather", "telemetry", "radio"];
 
 export const LIMITS = {
   raceControl: 200, // записів у лозі race control
@@ -67,6 +67,7 @@ function emptyData() {
     raceControl: [], // новіші першими, ≤ LIMITS.raceControl
     trackEvents: [], // новіші першими, БЕЗ обрізання: лише статус траси (SC/VSC, прапори траси й секторів, статус сесії) - для міток шкали
     weather: null,
+    radio: [], // командне радіо, старіші першими: {...team_radio, t, catchup}
     carData: {}, // {[n]: остання car_data + t}
     best: { lap: null, sectors: [null, null, null] }, // {time, driverNumber, lapNumber}
     personalBest: {}, // {[n]: {lap, lapNumber, sectors: [s1, s2, s3]}}
@@ -145,6 +146,9 @@ export function createLiveStore({ now = defaultNow, throttleMs = 200, surface = 
   let data = emptyData();
   let playback = initialPlayback();
   let ui = { focus: null, rival: null };
+  // Прослухані кліпи радіо ({[recording_url]: true}) - вибір глядача, не дані
+  // сесії: переживає перемотування (нове session), зберігає сторінка в localStorage.
+  let radioHeard = {};
 
   // --- високочастотні буфери (мутабельні, поза React) ---
   const trails = new Map(); // n → TimeRing
@@ -364,7 +368,7 @@ export function createLiveStore({ now = defaultNow, throttleMs = 200, surface = 
     data.best = best;
   }
 
-  function applyEvent(e, batchClock) {
+  function applyEvent(e, batchClock, catchup = false) {
     const d = e?.data;
     if (!d) return;
     const t = d.date != null ? parseTime(d.date) : batchClock;
@@ -423,6 +427,16 @@ export function createLiveStore({ now = defaultNow, throttleMs = 200, surface = 
         data.weather = { ...d, t };
         mark("weather");
         break;
+      case "team_radio": {
+        if (!d.recording_url || data.radio.some((r) => r.recording_url === d.recording_url)) break;
+        // catchup: кліп був до моменту, з якого дивимось - він не «новий» для
+        // позначки в таблиці (інакше після перемотування вона була б у всіх).
+        const list = [...data.radio, { ...d, t, catchup }];
+        if (list.length > 1 && (list[list.length - 2].t ?? 0) > (t ?? 0)) list.sort((a, b) => (a.t ?? 0) - (b.t ?? 0));
+        data.radio = list;
+        mark("radio");
+        break;
+      }
       default:
         break; // невідомий топік - ігноруємо (сумісність уперед)
     }
@@ -511,7 +525,7 @@ export function createLiveStore({ now = defaultNow, throttleMs = 200, surface = 
   function applyBatch(msg) {
     const clock = parseTime(msg.clock);
     const batchClock = clock ?? playback.clock;
-    for (const e of msg.events || []) applyEvent(e, batchClock);
+    for (const e of msg.events || []) applyEvent(e, batchClock, !!msg.catchup);
     const t = now();
     playback = { ...playback, clock: clock ?? playback.clock, clockRecvAt: t, lastBatchAt: t };
     if (msg.catchup) {
@@ -637,6 +651,30 @@ export function createLiveStore({ now = defaultNow, throttleMs = 200, surface = 
       scheduleFlush(true);
     },
 
+    // --- радіо: прослухане ---
+    /** Позначити кліпи (recording_url або масив) прослуханими / непрослуханими. */
+    setRadioHeard(urls, heard = true) {
+      const list = Array.isArray(urls) ? urls : [urls];
+      const next = { ...radioHeard };
+      let changed = false;
+      for (const u of list) {
+        if (!u || !!next[u] === heard) continue;
+        if (heard) next[u] = true;
+        else delete next[u];
+        changed = true;
+      }
+      if (!changed) return;
+      radioHeard = next;
+      mark("radio");
+      scheduleFlush(true);
+    },
+    /** Відновити збережене (localStorage) - без сповіщення про кожен кліп. */
+    loadRadioHeard(map) {
+      radioHeard = map && typeof map === "object" ? { ...map } : {};
+      mark("radio");
+      scheduleFlush(true);
+    },
+
     // --- підписки ---
     /** subscribe("table", cb) або subscribe(["table", "focus"], cb) → відписка. */
     subscribe(channels, cb) {
@@ -664,7 +702,7 @@ export function createLiveStore({ now = defaultNow, throttleMs = 200, surface = 
      * всередині - copy-on-write, тож їх можна порівнювати через Object.is.
      */
     getState() {
-      if (!snapshot) snapshot = { ...data, playback, focus: ui.focus, rival: ui.rival };
+      if (!snapshot) snapshot = { ...data, playback, focus: ui.focus, rival: ui.rival, radioHeard };
       return snapshot;
     },
 

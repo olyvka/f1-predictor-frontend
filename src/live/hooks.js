@@ -265,6 +265,25 @@ export function useRaceControl() {
   return useLiveSelector("rc", (s) => ({ messages: s.raceControl, trackStatus: s.trackStatus }), shallowEqual);
 }
 
+/**
+ * Командне радіо: {clips (старіші першими), heard ({[url]: true}), unheardNew
+ * ({[n]: кількість} - непрослухані кліпи, що прийшли під час перегляду, не з
+ * catch-up: для позначки в таблиці), setHeard(url|urls, heard=true)}.
+ */
+export function useTeamRadio() {
+  const store = useLiveStore();
+  const sel = useLiveSelector("radio", (s) => ({ clips: s.radio, heard: s.radioHeard }), shallowEqual);
+  const unheardNew = useMemo(() => {
+    const out = {};
+    for (const c of sel.clips) {
+      if (!c.catchup && !sel.heard[c.recording_url] && c.driver_number != null) out[c.driver_number] = (out[c.driver_number] || 0) + 1;
+    }
+    return out;
+  }, [sel.clips, sel.heard]);
+  const setHeard = useCallback((urls, heard = true) => store.setRadioHeard(urls, heard), [store]);
+  return { clips: sel.clips, heard: sel.heard, unheardNew, setHeard };
+}
+
 /** {status (повний стан, див. trackStatus.js), banner (що показати банером або null)} */
 export function useTrackStatus() {
   return useLiveSelector("rc", (s) => ({ status: s.trackStatus, banner: bannerFor(s.trackStatus) }), (a, b) => a.status === b.status);

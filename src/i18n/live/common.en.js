@@ -68,6 +68,7 @@ const common = {
     map: "Map",
     driver: "Driver",
     events: "Events",
+    radio: "Radio",
   },
   tyre: {
     soft: "Soft",

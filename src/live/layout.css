@@ -15,7 +15,7 @@
     display: grid;
     gap: 8px;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "top" "tabs" "tower" "map" "side" "controls";
+    grid-template-areas: "top" "tabs" "tower" "map" "focus" "events" "radio" "controls";
     transition: opacity 150ms linear;
   }
   .live-grid[data-seeking="true"] {
@@ -26,8 +26,12 @@
   .live-area-tabs { grid-area: tabs; }
   .live-area-tower { grid-area: tower; min-height: 0; min-width: 0; }
   .live-area-map { grid-area: map; min-height: 0; min-width: 0; }
-  .live-area-side { grid-area: side; min-height: 0; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
-  .live-area-side > .live-panel { flex: 1 1 0; min-height: 0; }
+  .live-area-sidetabs { grid-area: sidetabs; }
+  .live-area-focus { grid-area: focus; }
+  .live-area-events { grid-area: events; }
+  .live-area-radio { grid-area: radio; }
+  .live-panel { min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+  .live-panel > * { flex: 1 1 auto; min-height: 0; }
   .live-area-controls { grid-area: controls; min-width: 0; }
 
   /* Телефон: таблиця за замовчуванням, вкладки, липкий статус і міні-плеєр. */
@@ -41,7 +45,6 @@
     .live-area-top { top: var(--live-topbar-h); }
     .live-area-tabs { top: calc(var(--live-topbar-h) + var(--live-top-h, 0px)); }
     .live-area-map { height: min(70dvh, 560px); }
-    .live-area-side > .live-panel { flex: none; }
     .live-area-controls {
       position: sticky;
       bottom: 0;
@@ -51,36 +54,44 @@
     }
   }
 
-  /* Планшет: таблиця | карта зверху, «Пілот/Події» вкладками під картою. */
+  /* Планшет: таблиця | карта зверху, «Пілот / Події / Радіо» вкладками під картою. */
   @media (min-width: 768px) {
     .live-grid {
       height: calc(100dvh - var(--live-topbar-h) - 16px);
       grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
-      grid-template-rows: auto minmax(0, 1.2fr) minmax(0, 1fr) auto;
+      grid-template-rows: auto minmax(0, 1.2fr) auto minmax(0, 1fr) auto;
       grid-template-areas:
         "top top"
         "tower map"
-        "tower side"
+        "tower sidetabs"
+        "tower panel"
         "controls controls";
     }
+    .live-area-focus,
+    .live-area-events,
+    .live-area-radio { grid-area: panel; }
   }
 
-  /* Desktop: три колонки - таблиця | карта | пілот у фокусі + race control. */
+  /* Desktop: таблиця й пілот у фокусі - на всю висоту; між ними карта,
+     під картою поруч race control і радіо. */
   @media (min-width: 1280px) {
     .live-grid {
-      grid-template-columns: minmax(480px, 540px) minmax(420px, 1fr) 340px;
-      grid-template-rows: auto minmax(0, 1fr) auto;
+      grid-template-columns: minmax(480px, 540px) minmax(0, 1fr) minmax(0, 1fr) 340px;
+      grid-template-rows: auto minmax(0, 1.45fr) minmax(0, 1fr) auto;
       grid-template-areas:
-        "top top top"
-        "tower map side"
-        "controls controls controls";
+        "top top top top"
+        "tower map map focus"
+        "tower events radio focus"
+        "controls controls controls controls";
     }
-    .live-area-side > .live-panel:first-of-type { flex-grow: 1.2; }
+    .live-area-focus { grid-area: focus; }
+    .live-area-events { grid-area: events; }
+    .live-area-radio { grid-area: radio; }
   }
 
   @media (min-width: 1680px) {
     .live-grid {
-      grid-template-columns: 560px minmax(420px, 1fr) 420px;
+      grid-template-columns: 560px minmax(0, 1fr) minmax(0, 1fr) 420px;
     }
   }
 }

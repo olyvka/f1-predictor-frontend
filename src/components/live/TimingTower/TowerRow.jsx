@@ -66,6 +66,7 @@ function TowerRow({
   prediction,
   predStatus,
   hideChips,
+  radioNew = 0,
 }) {
   const d = row.driver;
   const chips = hideChips ? [] : rowChips(row, { isRace });
@@ -109,6 +110,15 @@ function TowerRow({
                 {isRace && row.hasSessionBest && (
                   <span className="lt-fastest" title={t("live.tower.lap.sessionBest")} aria-label={t("live.tower.lap.sessionBest")}>
                     ⏱
+                  </span>
+                )}
+                {radioNew > 0 && (
+                  <span className="lt-radio" title={t("live.radio.towerChip", { count: radioNew })} aria-label={t("live.radio.towerChip", { count: radioNew })}>
+                    <svg viewBox="0 0 12 12" aria-hidden="true">
+                      <rect x="4" y="1" width="4" height="6.5" rx="2" fill="currentColor" />
+                      <path d="M2.5 6a3.5 3.5 0 0 0 7 0M6 9.5V11" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+                    </svg>
+                    {radioNew > 1 && <span className="tabular">{radioNew}</span>}
                   </span>
                 )}
               </span>

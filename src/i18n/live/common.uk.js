@@ -72,6 +72,7 @@ const common = {
     map: "Карта",
     driver: "Пілот",
     events: "Події",
+    radio: "Радіо",
   },
   tyre: {
     soft: "М'яка",

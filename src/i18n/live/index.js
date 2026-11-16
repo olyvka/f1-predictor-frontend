@@ -14,6 +14,8 @@ import controlsUk from "./controls.uk.js";
 import controlsEn from "./controls.en.js";
 import eventsUk from "./events.uk.js";
 import eventsEn from "./events.en.js";
+import radioUk from "./radio.uk.js";
+import radioEn from "./radio.en.js";
 
-export const liveUk = { common: commonUk, tower: towerUk, map: mapUk, focus: focusUk, controls: controlsUk, events: eventsUk };
-export const liveEn = { common: commonEn, tower: towerEn, map: mapEn, focus: focusEn, controls: controlsEn, events: eventsEn };
+export const liveUk = { common: commonUk, tower: towerUk, map: mapUk, focus: focusUk, controls: controlsUk, events: eventsUk, radio: radioUk };
+export const liveEn = { common: commonEn, tower: towerEn, map: mapEn, focus: focusEn, controls: controlsEn, events: eventsEn, radio: radioEn };

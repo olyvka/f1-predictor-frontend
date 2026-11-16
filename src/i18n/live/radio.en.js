@@ -1,0 +1,21 @@
+// Team radio panel (RadioPanel).
+export default {
+  title: "Team radio",
+  filtersLabel: "Radio filter",
+  filter: { all: "All", focus: "Driver", unheard: "New" },
+  markAll: "Mark all",
+  unheardHint: "Unheard: {{count}}",
+  empty: "No radio has been published for this session yet",
+  pickDriver: "Pick a driver in the table or on the map",
+  emptyFilter: { all: "No radio yet", focus: "No radio from this driver yet", unheard: "All caught up" },
+  lap: "Lap {{lap}}",
+  play: "Play {{driver}} radio",
+  pause: "Pause",
+  failed: "Could not play the recording",
+  heard: "Listened",
+  unheard: "Not listened",
+  markHeard: "Mark as listened",
+  markUnheard: "Mark as not listened",
+  coverage: "F1 publishes only part of the team radio, so many drivers have no clips.",
+  towerChip: "New radio: {{count}} - not listened yet",
+};
