@@ -7,51 +7,53 @@
 // Пропси (фінальні):
 //   layout: "mobile" | "tablet" | "desktop" | "wide"
 //
-// Дані: useFocusDriver() (вибраний або лідер), useDriver(n), useDriverDetail(n),
-// useCarData(n), useSpeedTrace(n) (частка кола 0..1), usePredictions({enabled}),
-// useFocus() для «суперника». /api/analysis при першому запиті тренує модель -
-// вмикати usePredictions лише коли потрібно (не блокувати екран).
-import { useState } from "react";
+// Частини - у FocusPanel/: Header (шапка), Telemetry (W5), SpeedTrace (W6,
+// Canvas), LastLap (W12/L11), ModelVsRace (W13/L12), helpers.js (чисті функції
+// з тестами в FocusPanel/__tests__).
+//
+// Дані: useFocusDriver() (вибраний або лідер), useDriverDetail(n), store-буфер
+// телеметрії (Telemetry), useSpeedTrace(n), usePredictions - лише для гонки
+// (модель прогнозує фініш гонки; перший запит етапу може тренувати модель,
+// тож блок показує «рахується…», не блокуючи екран).
 import { useTranslation } from "react-i18next";
-import { useFocusDriver, useDriver, useDriverDetail, useCarData, useSpeedTrace, usePredictions, useFocus } from "../../live/hooks";
-import { formatLapTime, formatInt } from "../../live/format";
-import WidgetStub from "./WidgetStub";
+import { useFocus, useFocusDriver, useDriverDetail, usePredictions, useSession } from "../../live/hooks";
+import Header from "./FocusPanel/Header";
+import Telemetry from "./FocusPanel/Telemetry";
+import SpeedTrace from "./FocusPanel/SpeedTrace";
+import LastLap from "./FocusPanel/LastLap";
+import ModelVsRace from "./FocusPanel/ModelVsRace";
 
 export default function FocusPanel({ layout = "desktop" }) {
   const { t } = useTranslation();
   const { number, isFallback } = useFocusDriver();
-  const { rival } = useFocus();
-  const driver = useDriver(number);
+  const { clear } = useFocus();
+  const { isRace, ready } = useSession();
   const detail = useDriverDetail(number);
-  const car = useCarData(number);
-  const trace = useSpeedTrace(number);
-  const [wantPrediction, setWantPrediction] = useState(false);
-  const pred = usePredictions({ enabled: wantPrediction });
+  const driver = detail?.driver ?? null;
+  const pred = usePredictions({ enabled: ready && isRace });
+
   return (
-    <WidgetStub title={t("live.focus.title")} tasks="L8 · L11 · L12 · C">
-      {isFallback && <p className="text-(--color-text-dim)">{t("live.focus.pickHint")}</p>}
-      <p>
-        <b style={{ color: driver?.color }}>{driver?.acronym ?? "—"}</b> {driver?.full_name} · P{detail?.position ?? "—"} · rival={rival ?? "—"} · {layout}
-      </p>
-      <p className="tabular">
-        speed {formatInt(car?.speed)} · gear {car?.n_gear ?? "—"} · rpm {formatInt(car?.rpm)} · throttle {formatInt(car?.throttle)} · brake {car ? (car.brake > 0 ? "ON" : "off") : "—"}
-      </p>
-      <p className="tabular">
-        last {formatLapTime(detail?.lastLap?.lap_duration)} (L{detail?.lastLap?.lap_number ?? "—"}) · PB {formatLapTime(detail?.personalBest?.lap)} · tyre {detail?.stint?.compound ?? "—"} {detail?.tyreAge ?? ""} · pits {detail?.pits.length ?? 0}
-        {detail?.inPit ? " · PIT" : ""}
-      </p>
-      <p className="tabular">
-        trace: lap {trace?.lapNumber ?? "—"} · current {trace?.current.length ?? 0} pts · previous {trace?.previous.length ?? 0} pts{trace?.partial ? " · partial" : ""}
-      </p>
-      <p className="tabular">
-        model: {pred.status}
-        {pred.status === "ready" && ` · P${pred.byNumber[number]?.predicted_position ?? "—"} · unmatched ${pred.unmatched.length}`}
-        {!wantPrediction && (
-          <button className="ml-2 underline" onClick={() => setWantPrediction(true)}>
-            load
-          </button>
-        )}
-      </p>
-    </WidgetStub>
+    <section
+      className="flex flex-col min-h-0 h-full border border-(--color-line) bg-(--color-surface) rounded-md"
+      aria-label={t("live.focus.title")}
+    >
+      <Header detail={detail} driver={driver} number={number} isFallback={isFallback} onClear={clear} />
+      {driver && (
+        <div className="@container flex-1 min-h-0 overflow-y-auto overscroll-contain">
+          {/* Широкий контейнер (планшет: панель під картою) - дві колонки. */}
+          <div className="grid gap-4 p-3 @xl:grid-cols-2 @xl:gap-x-5" data-layout={layout}>
+            <div className="flex flex-col gap-4 min-w-0">
+              {/* key: інший пілот - нові смуги без переходу від чужих значень. */}
+              <Telemetry key={number} number={number} driver={driver} inPit={detail.inPit} gone={detail.gone} />
+              <SpeedTrace number={number} driver={driver} />
+            </div>
+            <div className="flex flex-col gap-4 min-w-0">
+              <LastLap detail={detail} />
+              {isRace && <ModelVsRace pred={pred} number={number} driver={driver} position={detail.position} gone={detail.gone} />}
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
