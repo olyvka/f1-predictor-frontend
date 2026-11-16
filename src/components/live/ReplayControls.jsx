@@ -30,7 +30,7 @@ const LAST_LAPS = 10;
 // Дані для міток і пресетів: кола лідера, піти, race control (стабільний селектор).
 const markerSource = (s) => {
   const leader = leaderFrom(s.position);
-  return { leaderLaps: leader != null ? s.laps[leader] : undefined, pits: s.pits, rc: s.raceControl };
+  return { leaderLaps: leader != null ? s.laps[leader] : undefined, pits: s.pits, rc: s.trackEvents };
 };
 
 const PlayIcon = () => (

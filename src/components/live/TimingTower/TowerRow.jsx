@@ -80,12 +80,19 @@ function TowerRow({
         );
       case "chg": {
         const dir = arrow ? (arrow.delta > 0 ? "up" : "down") : null;
+        // Без свіжої зміни - приглушена різниця з місцем на старті (гонка/спринт).
+        const fromGrid = !arrow && isRace && row.grid != null && row.position != null ? row.grid - row.position : 0;
         return (
-          <td key={c} className="lt-chg tabular" data-dir={dir || undefined}>
+          <td key={c} className="lt-chg tabular" data-dir={dir || (fromGrid ? "grid" : undefined)}>
             {arrow ? (
               <span aria-label={t(dir === "up" ? "live.tower.a11y.up" : "live.tower.a11y.down", { count: Math.abs(arrow.delta) })}>
                 {dir === "up" ? "▲" : "▼"}
                 {Math.abs(arrow.delta)}
+              </span>
+            ) : fromGrid ? (
+              <span title={t("live.tower.fromGrid", { grid: row.grid })}>
+                {fromGrid > 0 ? "▲" : "▼"}
+                {Math.abs(fromGrid)}
               </span>
             ) : null}
           </td>

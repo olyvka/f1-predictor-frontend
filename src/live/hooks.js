@@ -314,5 +314,12 @@ export function usePredictions({ enabled = true } = {}) {
     return res;
   }, [analysis.data, standings.data, driverList, ready]);
   const status = !enabled ? "idle" : analysis.error ? "error" : matched ? "ready" : "loading";
-  return { status, error: analysis.error, byNumber: matched?.byNumber || {}, unmatched: matched?.unmatched || EMPTY, analysis: analysis.data };
+  const { refetch: refetchAnalysis } = analysis;
+  const { refetch: refetchStandings } = standings;
+  // "Спробувати ще" після таймауту/помилки (перший запит по етапу тренує модель).
+  const refetch = useCallback(() => {
+    refetchAnalysis();
+    refetchStandings();
+  }, [refetchAnalysis, refetchStandings]);
+  return { status, error: analysis.error, byNumber: matched?.byNumber || {}, unmatched: matched?.unmatched || EMPTY, analysis: analysis.data, refetch };
 }

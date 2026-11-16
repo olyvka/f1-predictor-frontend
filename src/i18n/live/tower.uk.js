@@ -101,6 +101,7 @@ const tower = {
   },
   phase: "Q{{phase}}",
   phaseFull: "Частина кваліфікації (з race control)",
+  fromGrid: "Від старту (стартував P{{grid}})",
   a11y: {
     gained: "{{name}} піднявся на P{{position}}",
     lost: "{{name}} опустився на P{{position}}",

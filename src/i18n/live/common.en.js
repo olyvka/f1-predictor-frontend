@@ -21,6 +21,8 @@ const common = {
   retry: "Try again",
   ended: "Session finished",
   openResults: "Session results",
+  colorBlind: "Colour-blind palette",
+  colorBlindHint: "Okabe-Ito colours and different mini-sector heights, so purple, green and yellow differ without colour",
   fixtureMode: "Offline fixture",
   fixturesDisabled: "Offline fixtures are available only in development mode (npm run dev).",
   leader: "Leader",

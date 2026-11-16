@@ -58,12 +58,14 @@ function emptyData() {
     drivers: {}, // {[n]: Driver}
     driverNumbers: [], // відсортовані номери
     track: null, // {points, geometry} або null
+    grid: null, // {[n]: стартова позиція} для гонки/спринту (з бекенду) або null
     position: {}, // {[n]: {position, t}}
     intervals: {}, // {[n]: {gap_to_leader, interval, t}}
     laps: {}, // {[n]: Lap[]} за lap_number
     stints: {}, // {[n]: Stint[]} за stint_number
     pits: {}, // {[n]: Pit[]} за часом
     raceControl: [], // новіші першими, ≤ LIMITS.raceControl
+    trackEvents: [], // новіші першими, БЕЗ обрізання: лише статус траси (SC/VSC, прапори траси й секторів, статус сесії) - для міток шкали
     weather: null,
     carData: {}, // {[n]: остання car_data + t}
     best: { lap: null, sectors: [null, null, null] }, // {time, driverNumber, lapNumber}
@@ -233,6 +235,9 @@ export function createLiveStore({ now = defaultNow, throttleMs = 200, surface = 
 
     const points = msg.track?.points;
     data.track = Array.isArray(points) && points.length > 1 ? { points, geometry: buildTrackGeometry(points) } : null;
+    // Стартова решітка приходить у session: після перемотування catch-up має
+    // лише останні позиції, тож «▲▼ від старту» береться звідси.
+    data.grid = msg.grid && typeof msg.grid === "object" ? msg.grid : null;
     data.watchStart = data.replay?.startMs ?? null;
 
     ui = {
@@ -253,6 +258,12 @@ export function createLiveStore({ now = defaultNow, throttleMs = 200, surface = 
     tableInstant = true;
     caches = { tower: null, towerKey: -1, trace: new Map() };
     mark(...CHANNELS);
+  }
+
+  // До першого session (або між сесіями) склад пілотів невідомий: вибір
+  // приймаємо, а applySession лишить його, лише якщо такий пілот є.
+  function knownDriver(n) {
+    return data.driverNumbers.length === 0 || !!data.drivers[n];
   }
 
   function resetBuffers() {
@@ -399,6 +410,11 @@ export function createLiveStore({ now = defaultNow, throttleMs = 200, surface = 
         if (list.length > 1 && (list[1].t ?? 0) > (t ?? 0)) list.sort((a, b) => (b.t ?? 0) - (a.t ?? 0));
         if (list.length > LIMITS.raceControl) list.length = LIMITS.raceControl;
         data.raceControl = list;
+        if (isTrackEvent(msg)) {
+          const ev = [msg, ...data.trackEvents];
+          if (ev.length > 1 && (ev[1].t ?? 0) > (t ?? 0)) ev.sort((a, b) => (b.t ?? 0) - (a.t ?? 0));
+          data.trackEvents = ev;
+        }
         data.trackStatus = reduceTrackStatus(data.trackStatus, msg);
         mark("rc"); // сині прапори/⚠ у таблиці - через derive()
         break;
@@ -604,7 +620,7 @@ export function createLiveStore({ now = defaultNow, throttleMs = 200, surface = 
 
     // --- спільний UI-стан ---
     setFocus(n) {
-      const v = n == null || !data.drivers[n] ? null : Number(n);
+      const v = n == null || !knownDriver(n) ? null : Number(n);
       if (v === ui.focus) return;
       ui = { focus: v, rival: ui.rival === v ? null : ui.rival };
       mark("focus");
@@ -614,7 +630,7 @@ export function createLiveStore({ now = defaultNow, throttleMs = 200, surface = 
       store.setFocus(ui.focus === Number(n) ? null : n);
     },
     setRival(n) {
-      const v = n == null || !data.drivers[n] || Number(n) === ui.focus ? null : Number(n);
+      const v = n == null || !knownDriver(n) || Number(n) === ui.focus ? null : Number(n);
       if (v === ui.rival) return;
       ui = { ...ui, rival: v };
       mark("focus");
@@ -795,12 +811,20 @@ export function createLiveStore({ now = defaultNow, throttleMs = 200, surface = 
   return store;
 }
 
+// Події статусу траси для шкали replay: без синіх прапорів і порушень, яких у
+// гонці сотні, тож список лишається коротким навіть без обрізання.
+const TRACK_FLAGS = new Set(["YELLOW", "DOUBLE YELLOW", "RED", "GREEN", "CLEAR", "CHEQUERED"]);
+export function isTrackEvent(m) {
+  if (m.category === "SafetyCar" || m.category === "SessionStatus") return true;
+  return (m.scope === "Track" || m.scope === "Sector") && TRACK_FLAGS.has(m.flag);
+}
+
 /**
  * Рядки таблиці позицій. Чиста функція від знімка стану - тож її можна
  * тестувати й перевикористовувати.
  */
 export function buildTower(state, instant = false) {
-  const { drivers, driverNumbers, position, intervals, laps, stints, pits, personalBest, best, derived, session } = state;
+  const { drivers, driverNumbers, position, intervals, laps, stints, pits, personalBest, best, derived, session, grid } = state;
   const isRace = session?.session_type === "Race";
   const bestLap = best.lap?.time ?? null;
   const rows = driverNumbers.map((n) => {
@@ -816,6 +840,7 @@ export function buildTower(state, instant = false) {
       driverNumber: n,
       driver: drivers[n],
       position: position[n]?.position ?? null,
+      grid: grid?.[n] ?? null,
       gapToLeader: iv ? iv.gap_to_leader : null,
       interval: iv ? iv.interval : null,
       intervalsAt: iv?.t ?? null,

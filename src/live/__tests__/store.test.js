@@ -342,3 +342,45 @@ describe("store: допоміжне", () => {
     expect(buildTower(store.getState()).rows).toEqual([]);
   });
 });
+
+describe("store: доповнення після інтеграції", () => {
+  it("grid із session потрапляє в рядки таблиці й переживає перемотування", () => {
+    const { store } = makeStore();
+    const session = { ...sessionOf(race), grid: { 1: 3, 44: 7 } };
+    store.receive(session);
+    store.receive(catchupOf(race));
+    const row = (n) => buildTower(store.getState()).rows.find((r) => r.driverNumber === n);
+    expect(row(1).grid).toBe(3);
+    expect(row(44).grid).toBe(7);
+    expect(row(16).grid).toBeNull();
+    store.receive(session); // нове з'єднання після seek
+    expect(buildTower(store.getState()).rows.find((r) => r.driverNumber === 44).grid).toBe(7);
+  });
+
+  it("журнал статусу траси не обрізається і не містить синіх прапорів", () => {
+    const { store } = makeStore();
+    store.receive(sessionOf(race));
+    const start = parseTime(sessionOf(race).replay.start);
+    const iso = (s) => new Date(start + s * 1000).toISOString();
+    const events = [{ topic: "race_control", data: { date: iso(1), category: "SafetyCar", message: "SAFETY CAR DEPLOYED", scope: "Track" } }];
+    for (let i = 0; i < LIMITS.raceControl + 50; i++)
+      events.push({ topic: "race_control", data: { date: iso(2 + i), category: "Flag", flag: "BLUE", scope: "Driver", driver_number: 1, message: "BLUE" } });
+    events.push({ topic: "race_control", data: { date: iso(500), category: "Flag", flag: "YELLOW", scope: "Sector", sector: 4, message: "YELLOW IN TRACK SECTOR 4" } });
+    store.receive(batch(iso(600), events));
+    const s = store.getState();
+    expect(s.raceControl).toHaveLength(LIMITS.raceControl);
+    expect(s.trackEvents.map((m) => m.message)).toEqual(["YELLOW IN TRACK SECTOR 4", "SAFETY CAR DEPLOYED"]);
+  });
+
+  it("вибір пілота до приходу session зберігається, якщо такий пілот є", () => {
+    const { store } = makeStore();
+    store.setFocus(44);
+    store.setRival(999);
+    store.receive(sessionOf(race));
+    const s = store.getState();
+    expect(s.focus).toBe(44);
+    expect(s.rival).toBeNull();
+    store.setFocus(999); // склад уже відомий - невідомий пілот відкидається
+    expect(store.getState().focus).toBeNull();
+  });
+});

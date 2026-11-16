@@ -73,6 +73,9 @@ const focus = {
   },
 
   model: {
+    retry: "Try again",
+    basis: { quali: "with qualifying", noQuali: "without qualifying" },
+    stageHint: "Data available when the prediction was made: {{stage}}",
     title: "Model vs race",
     honest: "Model prediction made before the start, not updated during the race",
     notes: "Data notes",

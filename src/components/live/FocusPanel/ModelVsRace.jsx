@@ -11,7 +11,9 @@ import { modelVsRace } from "../../../live/predictions";
 import Badge from "../../common/Badge";
 import { modelPairs, percent, positionDelta, signedImpact, topFactors } from "./helpers";
 
-const STAGE_TONES = { not_started: "neutral", post_quali: "warn", completed: "good" };
+// Бейдж каже, на чому побудовано прогноз, а не стан гонки: data.stage = "completed"
+// під час replay читався б як «гонка завершена» посеред гонки.
+const BASIS_TONES = { quali: "good", noQuali: "warn" };
 
 // Смужка від центру: вправо (зелена) - тягне до P1, вліво (червона) - вниз.
 // Та сама подача, що й у PredictionExplanation на сторінці аналізу.
@@ -131,6 +133,7 @@ export default function ModelVsRace({ pred, number, driver, position, gone }) {
   const { rows } = useTower();
   const analysis = pred.analysis;
   const stage = analysis?.data?.stage;
+  const basis = analysis?.data ? (analysis.data.quali_available ? "quali" : "noQuali") : null;
   const notes = analysis?.data?.notes || [];
   const usual = analysis?.model?.metrics?.spearman_mean;
   const tile = useMemo(() => (pred.status === "ready" ? modelVsRace(modelPairs(rows, pred.byNumber)) : null), [pred.status, pred.byNumber, rows]);
@@ -150,13 +153,26 @@ export default function ModelVsRace({ pred, number, driver, position, gone }) {
               ⓘ
             </span>
           )}
-          {stage && <Badge tone={STAGE_TONES[stage] || "neutral"}>{STAGE_TONES[stage] ? t(`analysis.stage.${stage}`) : stage}</Badge>}
+          {basis && (
+            <span title={stage ? t("live.focus.model.stageHint", { stage: t(`analysis.stage.${stage}`, { defaultValue: stage }) }) : undefined}>
+              <Badge tone={BASIS_TONES[basis]}>{t(`live.focus.model.basis.${basis}`)}</Badge>
+            </span>
+          )}
         </span>
       </div>
       <p className="text-[11px] leading-snug text-(--color-text-dim)">{t("live.focus.model.honest")}</p>
 
       {pred.status === "error" ? (
-        <p className="text-xs text-(--color-warn)">{t("live.focus.model.error", { error: pred.error })}</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-xs text-(--color-warn)">{t("live.focus.model.error", { error: pred.error })}</p>
+          <button
+            type="button"
+            onClick={pred.refetch}
+            className="rounded-md border border-(--color-line) px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide hover:bg-(--color-surface-hover)"
+          >
+            {t("live.focus.model.retry")}
+          </button>
+        </div>
       ) : pred.status !== "ready" ? (
         <Skeleton />
       ) : (

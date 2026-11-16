@@ -131,6 +131,10 @@
 .lt-chg[data-dir="down"] {
   color: var(--color-danger);
 }
+.lt-chg[data-dir="grid"] {
+  color: var(--color-text-dim);
+  opacity: 0.75;
+}
 
 .lt-driver {
   text-align: left !important;

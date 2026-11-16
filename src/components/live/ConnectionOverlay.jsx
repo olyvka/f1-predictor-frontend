@@ -184,7 +184,7 @@ function StatusChips({ mobile }) {
   const stale = staleSeconds({ status: r.status, paused: r.paused, seeking: r.seeking, clock, lastEventAt: r.lastEventAt, replayStart: r.replayStart });
   const buffering = r.status === "buffering";
   if (!buffering && stale == null) return null;
-  const style = mobile ? { bottom: "calc(72px + env(safe-area-inset-bottom))" } : { top: "calc(var(--live-top-h, 56px) + 14px)" };
+  const style = mobile ? { bottom: "calc(var(--live-controls-h, 64px) + 8px)" } : { top: "calc(var(--live-top-h, 56px) + 14px)" };
   return (
     <div className={`pointer-events-none ${mobile ? "fixed" : "absolute"} inset-x-0 z-20 flex justify-center gap-2 px-3`} style={style} role="status" aria-live="polite">
       {buffering && (

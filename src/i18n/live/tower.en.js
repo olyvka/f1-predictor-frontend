@@ -97,6 +97,7 @@ const tower = {
   },
   phase: "Q{{phase}}",
   phaseFull: "Qualifying part (from race control)",
+  fromGrid: "Since the start (started P{{grid}})",
   a11y: {
     gained: "{{name}} up to P{{position}}",
     lost: "{{name}} down to P{{position}}",

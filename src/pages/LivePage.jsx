@@ -33,6 +33,29 @@ import ConnectionOverlay from "../components/live/ConnectionOverlay";
 import { isReplayYear } from "../live/availability";
 import "../live/layout.css";
 
+// Палітра для дальтоніків (.live-cb, токени в src/index.css): вибір глядача,
+// пам'ятаємо в localStorage (може бути недоступний - тоді просто вимкнено).
+const CB_KEY = "live.colorBlind";
+function useColorBlind() {
+  const [on, setOn] = useState(() => {
+    try {
+      return localStorage.getItem(CB_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const toggle = () =>
+    setOn((v) => {
+      try {
+        localStorage.setItem(CB_KEY, v ? "0" : "1");
+      } catch {
+        /* немає доступу до сховища */
+      }
+      return !v;
+    });
+  return [on, toggle];
+}
+
 const num = (v, fallback) => {
   const x = v == null || v === "" ? NaN : Number(v);
   return Number.isFinite(x) ? x : fallback;
@@ -171,21 +194,26 @@ function LiveLayout({ fixture }) {
   // Вкладка на телефоні (усі 4) і на планшеті (Пілот/Події під картою).
   const [panel, setPanel] = useState("positions");
   const topRef = useRef(null);
+  const [colorBlind, toggleColorBlind] = useColorBlind();
+  const controlsRef = useRef(null);
 
-  // Висоти верхнього бару застосунку і липкої шапки екрана - для липких зон
-  // на телефоні й висоти сітки (CSS-змінні в src/live/layout.css).
+  // Висоти верхнього бару застосунку, липкої шапки екрана і панелі керування -
+  // для липких зон і плаваючих чіпів на телефоні (CSS-змінні в src/live/layout.css).
   useEffect(() => {
     const el = topRef.current;
     const screen = el?.closest(".live-screen");
     const appBar = document.querySelector("body header");
+    const controls = controlsRef.current;
     if (!el || !screen || typeof ResizeObserver === "undefined") return;
     const measure = () => {
       screen.style.setProperty("--live-top-h", `${el.offsetHeight}px`);
       if (appBar) screen.style.setProperty("--live-topbar-h", `${appBar.offsetHeight}px`);
+      if (controls) screen.style.setProperty("--live-controls-h", `${controls.offsetHeight}px`);
     };
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     if (appBar) ro.observe(appBar);
+    if (controls) ro.observe(controls);
     return () => ro.disconnect();
   }, []);
 
@@ -208,7 +236,7 @@ function LiveLayout({ fixture }) {
   };
 
   return (
-    <div className="live-screen">
+    <div className={`live-screen${colorBlind ? " live-cb" : ""}`}>
       <div className="live-grid" data-seeking={seeking}>
         <div ref={topRef} className="live-area-top flex flex-col gap-2">
           <div className="flex flex-wrap items-stretch gap-2">
@@ -217,6 +245,18 @@ function LiveLayout({ fixture }) {
               <StatusBar layout={layout} />
             </div>
             <WeatherChips layout={layout} />
+            <button
+              type="button"
+              onClick={toggleColorBlind}
+              aria-pressed={colorBlind}
+              title={t("live.common.colorBlindHint")}
+              className={`self-center shrink-0 text-[10px] uppercase tracking-wide font-semibold px-2 py-1 rounded border transition-colors ${
+                colorBlind ? "border-(--color-accent) text-(--color-text) bg-(--color-surface-2)" : "border-(--color-line) text-(--color-text-dim) hover:text-(--color-text)"
+              }`}
+            >
+              <span aria-hidden="true">◐ </span>
+              {t("live.common.colorBlind")}
+            </button>
             {fixture && (
               <span className="self-center text-[10px] uppercase tracking-wide font-semibold px-2 py-1 rounded border border-(--color-warn) text-(--color-warn)">
                 {t("live.common.fixtureMode")}
@@ -249,7 +289,7 @@ function LiveLayout({ fixture }) {
           </div>
         </div>
 
-        <div className="live-area-controls">
+        <div ref={controlsRef} className="live-area-controls">
           <ReplayControls layout={layout} />
         </div>
       </div>

@@ -84,18 +84,21 @@
 {
   mode: "replay" | "live" | null,
   session: {session_key, session_name, session_type, date_start, date_end,
-            circuit_short_name, country_name, location, year} | null,
+            circuit_short_name, country_name, location, year,
+            gmt_offset} | null,          // gmt_offset "-03:00:00" - місцевий час траси (у фікстурах може бракувати)
   sessionStart: ms | null,
   replay: {start, end, speed, startMs, endMs} | null,       // null у live
   drivers: { [n]: Driver },        // див. нижче
   driverNumbers: number[],         // за номером
   track: { points: [[x,y]…], geometry } | null,              // geometry - geometry.js
+  grid: { [n]: стартова позиція } | null,                    // з session; лише гонка/спринт
   position:  { [n]: {position, t} },
   intervals: { [n]: {gap_to_leader, interval, t} },          // число | null | "+1 LAP"
   laps:   { [n]: Lap[] },          // за lap_number, upsert (n, lap_number)
   stints: { [n]: Stint[] },        // за stint_number, upsert (n, stint_number)
   pits:   { [n]: Pit[] },          // за часом, без дублікатів (date + lap_number)
   raceControl: Msg[],              // НОВІШІ ПЕРШИМИ, ≤ 200
+  trackEvents: Msg[],              // НОВІШІ ПЕРШИМИ, без обрізання: SC/VSC, прапори траси й секторів, статус сесії (isTrackEvent)
   weather: {...weather, t} | null,
   carData: { [n]: {...car_data, t} },                        // остання на пілота
   best: { lap: {time, driverNumber, lapNumber} | null,
@@ -173,14 +176,14 @@ ended | error | lost`. У `lost` - автопідключення 1/2/4/8/15 с 
 | `useWeather()` | weather | погода або `null` |
 | `useCircuitFacts()` | REST | `{data, loading, error, refetch, typicalLaps}` (`/api/circuit-facts`) |
 | `useLapCounter()` | table + REST | `{current (коло лідера ≤ total), total (typical_laps лише для гонки/спринту, інакше null), isRace}` |
-| `usePredictions({enabled})` | REST + meta | `{status: idle\|loading\|ready\|error, error, byNumber: {[n]: prediction}, unmatched, analysis}` |
+| `usePredictions({enabled})` | REST + meta | `{status: idle\|loading\|ready\|error, error, byNumber: {[n]: prediction}, unmatched, analysis, refetch()}` |
 | `useLiveSelector(channels, sel, isEqual)` | будь-які | власний селектор `sel(state, store)` |
 | `useLiveStore()` / `useLiveSource()` / `useLiveParams()` | - | стор, джерело, `{year, round, session, sourceKind}` |
 | `useLiveLayout()` (`useLiveLayout.js`) | matchMedia | `"mobile" \| "tablet" \| "desktop" \| "wide"` |
 
 `TowerRow`:
 ```js
-{ driverNumber, driver, position, isLeader,
+{ driverNumber, driver, position, isLeader, grid,          // grid - стартова позиція або null
   gapToLeader, interval, intervalsAt,      // сирі значення: число | null | "+1 LAP"
   lapsCompleted, currentLap, lastLap, lastLapTime, lastLapIsPit,
   lastLapIsSessionBest, lastLapIsPersonalBest, bestLapTime, hasSessionBest,
