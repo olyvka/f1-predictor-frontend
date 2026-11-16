@@ -212,3 +212,13 @@ describe("url", () => {
     expect(roundOffset(12.345)).toBe(12.3);
   });
 });
+
+import { formatCountdown } from "../format";
+describe("formatCountdown", () => {
+  it("хвилини, години, дні", () => {
+    expect(formatCountdown(125)).toBe("2:05");
+    expect(formatCountdown(3725)).toBe("1:02:05");
+    expect(formatCountdown(90061, "d")).toBe("1 d 01:01:01");
+    expect(formatCountdown(-1)).toBe("—");
+  });
+});

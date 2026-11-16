@@ -149,6 +149,8 @@ export const api = {
   // браузера: статус змінюється, щойно прогноз порахують на сторінці
   // "Прогноз", і повернення в "Огляд" має це побачити.
   getAnalysisStatus: (year, round) => fetchJson(`/api/analysis/${year}/${round}/status`, REQUEST_TIMEOUT_MS),
+  // Без кешу: статус live змінюється з часом (до старту / наживо / завершено).
+  getLiveStatus: () => fetchJson("/api/live/status", REQUEST_TIMEOUT_MS),
 
   // Прогноз моделі (v2.0). Перший запит по етапу тренує модель — довше за
   // звичайний FastF1-запит, тож окремий, ще щедріший таймаут. `refresh: true`

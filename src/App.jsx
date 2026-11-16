@@ -1,7 +1,8 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LANGUAGES } from "./i18n";
+import { api } from "./api/client";
 import { BreadcrumbProvider } from "./context/BreadcrumbProvider";
 import { AuthProvider } from "./context/AuthProvider";
 import AccountMenu from "./components/common/AccountMenu";
@@ -23,6 +24,7 @@ const DriverPage = lazy(() => import("./pages/DriverPage"));
 const ComparePage = lazy(() => import("./pages/ComparePage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const LivePage = lazy(() => import("./pages/LivePage"));
+const LiveNowPage = lazy(() => import("./pages/LiveNowPage"));
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -44,6 +46,41 @@ function LanguageSwitch() {
         </button>
       ))}
     </div>
+  );
+}
+
+// Посилання на /live - лише якщо на сервері є підписка і в календарі є сесія.
+// Наживо - червона крапка. Статус перевіряється раз на хвилину.
+function LiveLink() {
+  const { t } = useTranslation();
+  const [status, setStatus] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    const check = () =>
+      api.getLiveStatus().then(
+        (s) => alive && setStatus(s),
+        () => alive && setStatus(null)
+      );
+    check();
+    const id = setInterval(check, 60_000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, []);
+  if (!status?.configured || !["live", "upcoming"].includes(status.status)) return null;
+  const isLive = status.status === "live";
+  return (
+    <Link
+      to="/live"
+      className={`inline-flex items-center gap-1.5 text-xs uppercase tracking-wide font-semibold px-2.5 py-1.5 rounded-md hover:bg-(--color-surface) ${
+        isLive ? "text-(--color-text)" : "text-(--color-text-dim) hover:text-(--color-text)"
+      }`}
+      title={isLive ? t("live.common.now.liveNow") : t("live.common.now.nextTitle")}
+    >
+      {isLive && <span className="w-2 h-2 rounded-full bg-(--color-accent) animate-pulse" aria-hidden="true" />}
+      Live
+    </Link>
   );
 }
 
@@ -94,6 +131,7 @@ function TopBar() {
             ← {t("app.back")}
           </button>
         )}
+        <LiveLink />
         <LanguageSwitch />
         <AccountMenu />
       </div>
@@ -111,7 +149,7 @@ function StandingsRedirect() {
 function AppMain({ children }) {
   const { i18n } = useTranslation();
   const { pathname } = useLocation();
-  const fullBleed = pathname.startsWith("/live/");
+  const fullBleed = pathname === "/live" || pathname.startsWith("/live/");
   return (
     // key — при зміні мови вміст перемонтовується, тож дати й підписи
     // (зокрема в графіках, що не підписані на i18n) оновлюються всі
@@ -138,6 +176,8 @@ export default function App() {
                 <Route path="/login" element={<LoginPage />} />
                 {/* Replay / live сесії (OpenF1, сезони від 2023): ?speed=&offset=&source=fixture */}
                 <Route path="/live/:year/:round/:session" element={<LivePage />} />
+                {/* Поточна сесія наживо (платна підписка OpenF1 на бекенді) */}
+                <Route path="/live" element={<LiveNowPage />} />
                 <Route path="/:year" element={<SeasonPage />} />
                 {/* Чемпіонат тепер — вкладки на сторінці сезону; стара адреса веде туди. */}
                 <Route path="/:year/standings" element={<StandingsRedirect />} />

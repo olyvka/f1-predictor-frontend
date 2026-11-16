@@ -95,10 +95,11 @@ export default function LivePage() {
   return <LiveScreen key={`${y}/${r}/${session}`} year={y} round={r} session={session} />;
 }
 
-function LiveScreen({ year, round, session }) {
+// kind "live" передає сторінка /live (LiveNowPage); інакше - replay або фікстура з адреси.
+export function LiveScreen({ year, round, session, kind: kindProp, onWaiting }) {
   const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const kind = searchParams.get("source") === "fixture" ? "fixture" : "backend";
+  const kind = kindProp || (searchParams.get("source") === "fixture" ? "fixture" : "backend");
   const fixtureName = searchParams.get("fixture") || undefined;
   // speed/offset/drop читаються один раз: далі адреса лише відображає поточний момент.
   const [initial] = useState(() => ({
@@ -124,6 +125,7 @@ function LiveScreen({ year, round, session }) {
       offset: initial.offset,
       lang,
       dropAfterSeconds: initial.drop,
+      onWaiting,
     })
       .then((s) => {
         if (cancelled) return;

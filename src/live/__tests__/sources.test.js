@@ -285,3 +285,42 @@ describe("FixtureSource", () => {
     src.close();
   });
 });
+
+describe("LiveSource: поза live-вікном", () => {
+  it("waiting - не обрив: без перепідключення, сторінка отримує повідомлення", () => {
+    FakeWS.instances = [];
+    vi.useFakeTimers();
+    const store = createLiveStore({ throttleMs: 0, now });
+    const onWaiting = vi.fn();
+    const live = new LiveSource({ store, apiUrl: "http://localhost:8000", lang: "uk", WebSocketImpl: FakeWS, now, onWaiting });
+    live.start();
+    const ws = FakeWS.instances.at(-1);
+    ws.open();
+    const waiting = { type: "waiting", status: "upcoming", opens_at: "2026-12-04T09:00:00+00:00", session: { session_key: 5 } };
+    ws.emit(waiting);
+    ws.drop(1000);
+    vi.advanceTimersByTime(60_000);
+    expect(onWaiting).toHaveBeenCalledWith(waiting);
+    expect(FakeWS.instances).toHaveLength(1);
+    expect(store.getState().playback.status).toBe("ended");
+    live.close();
+    vi.useRealTimers();
+  });
+
+  it("сесія live: mode із session, обрив - перепідключення без offset", () => {
+    FakeWS.instances = [];
+    vi.useFakeTimers();
+    const store = createLiveStore({ throttleMs: 0, now });
+    const live = new LiveSource({ store, apiUrl: "http://localhost:8000", lang: "uk", WebSocketImpl: FakeWS, now });
+    live.start();
+    FakeWS.instances.at(-1).open();
+    FakeWS.instances.at(-1).emit({ ...SESSION, mode: "live", replay: null });
+    expect(store.getState().playback.mode).toBe("live");
+    FakeWS.instances.at(-1).drop(1006);
+    vi.advanceTimersByTime(BACKOFF_MS[0] + 10);
+    expect(FakeWS.instances).toHaveLength(2);
+    expect(FakeWS.instances.at(-1).url).toBe("ws://localhost:8000/ws/live?lang=uk");
+    live.close();
+    vi.useRealTimers();
+  });
+});

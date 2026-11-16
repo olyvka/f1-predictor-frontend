@@ -100,3 +100,15 @@ export function formatClock(seconds, { hours = "auto" } = {}) {
 export function formatInt(value) {
   return isNum(value) ? String(Math.round(value)) : DASH;
 }
+
+/** Таймер відліку: 125 → "2:05", 3725 → "1:02:05", 90061 → "1 д 01:01:01" (dayLabel - локалізоване «д»/«d»). */
+export function formatCountdown(seconds, dayLabel = "д") {
+  if (!Number.isFinite(seconds) || seconds < 0) return "—";
+  const s = Math.floor(seconds);
+  const d = Math.floor(s / 86400);
+  const h = Math.floor((s % 86400) / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = String(s % 60).padStart(2, "0");
+  if (d > 0) return `${d} ${dayLabel} ${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${sec}`;
+  return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
+}
