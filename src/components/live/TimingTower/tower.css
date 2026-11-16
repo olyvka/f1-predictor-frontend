@@ -1,0 +1,545 @@
+/* Стилі агента A: timing tower, статус-бар, банер статусу траси.
+   Лише токени застосунку (src/index.css: --color-*, блок «Live / Replay»).
+   Рух - LIVE_UI_RESEARCH §5.8; prefers-reduced-motion вимикає рух у кінці файлу.
+   Класи з префіксом lt- (live tower), щоб не перетинатися з іншими віджетами. */
+
+/* ---------------------------------------------------------------- tower */
+.lt-panel {
+  --lt-row-h: 32px;
+  container-type: inline-size;
+}
+/* Кваліфікація на вузькому desktop (1280): номер пілота поступається місцем секторам. */
+@container (max-width: 520px) {
+  .lt-panel[data-race="false"] .lt-num {
+    display: none;
+  }
+}
+.lt-panel[data-layout="mobile"] {
+  --lt-row-h: 40px;
+}
+
+.lt-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+.lt-panel[data-layout="mobile"] .lt-table {
+  font-size: 14px;
+}
+
+.lt-table th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 28px;
+  padding: 0 4px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-line);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-dim);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lt-table th.lt-l {
+  text-align: left;
+}
+.lt-table th.lt-c {
+  text-align: center;
+}
+
+.lt-table td {
+  height: var(--lt-row-h);
+  padding: 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+  vertical-align: middle;
+}
+.lt-table td:first-child,
+.lt-table th:first-child {
+  padding-left: 8px;
+}
+.lt-table td:last-child,
+.lt-table th:last-child {
+  padding-right: 8px;
+}
+
+.lt-row {
+  cursor: pointer;
+  /* Подія pointer на сенсорі не скролить таблицю, якщо палець рухається - це
+     обробляє скасування довгого тапу; тут лише прибираємо сіру підсвітку iOS. */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+.lt-row:nth-child(even) {
+  background: rgb(255 255 255 / 0.015);
+}
+.lt-row:hover {
+  background: var(--color-surface-hover);
+}
+.lt-row[aria-selected="true"] {
+  background: var(--color-surface-hover);
+  box-shadow: inset 3px 0 0 var(--color-accent), inset -1px 0 0 var(--color-accent), inset 0 1px 0 var(--color-accent), inset 0 -1px 0 var(--color-accent);
+}
+.lt-row[data-rival="true"] {
+  outline: 1px dashed var(--color-text-dim);
+  outline-offset: -2px;
+}
+.lt-row:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+.lt-row[data-elim="true"] {
+  background: var(--color-elimination-bg);
+}
+.lt-row[data-elim-first="true"] td {
+  border-top: 1px dashed var(--color-danger);
+}
+.lt-row[data-gone="true"] td {
+  opacity: 0.45;
+}
+.lt-row[data-gone="true"] td.lt-driver {
+  opacity: 1;
+}
+.lt-row[data-gone="true"] td.lt-driver > .lt-drv-main {
+  opacity: 0.45;
+}
+
+.lt-pos {
+  font-weight: 700;
+}
+.lt-chg {
+  font-size: 11px;
+  text-align: left !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  color: var(--color-text-dim);
+}
+.lt-chg[data-dir="up"] {
+  color: var(--color-good);
+}
+.lt-chg[data-dir="down"] {
+  color: var(--color-danger);
+}
+
+.lt-driver {
+  text-align: left !important;
+}
+.lt-drv {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.lt-drv-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: none;
+}
+.lt-stripe {
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  flex: none;
+}
+.lt-tla {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  min-width: 2.4em;
+}
+.lt-num {
+  font-size: 11px;
+  color: var(--color-text-dim);
+  min-width: 1.6em;
+}
+.lt-fastest {
+  font-size: 12px;
+  color: var(--color-timing-purple);
+}
+.lt-chips {
+  display: flex;
+  gap: 3px;
+  min-width: 0;
+  overflow: hidden;
+}
+.lt-chip {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  padding: 3px 4px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+.lt-chip[data-kind="pit"] {
+  background: var(--color-pit-lane);
+  color: #fff;
+}
+.lt-chip[data-kind="out"] {
+  background: transparent;
+  color: var(--color-pit-lane);
+  box-shadow: inset 0 0 0 1px var(--color-pit-lane);
+}
+.lt-chip[data-kind="ret"],
+.lt-chip[data-kind="garage"] {
+  background: var(--color-surface-2);
+  color: var(--color-text-dim);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+.lt-chip[data-kind="blue"] {
+  background: var(--color-flag-blue);
+  color: #fff;
+}
+.lt-chip[data-kind="warn"] {
+  background: var(--color-flag-yellow);
+  color: var(--color-flag-ink);
+}
+
+.lt-dash {
+  color: var(--color-text-dim);
+}
+.lt-dim {
+  color: var(--color-text-dim);
+}
+.lt-stale {
+  color: var(--color-text-dim);
+}
+.lt-stale-icon {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 3px;
+  vertical-align: -1px;
+}
+
+/* Таймінг (§5.2): фіолетовий - лише плашка, зелений - напівжирний, піт - сірий курсив. */
+.lt-time[data-kind="session"] > span {
+  background: var(--color-timing-purple-bg);
+  color: #fff;
+  font-weight: 600;
+  padding: 1px 3px;
+  border-radius: 3px;
+}
+.lt-time[data-kind="personal"] {
+  color: var(--color-timing-green);
+  font-weight: 700;
+}
+.lt-time[data-kind="pit"] {
+  color: var(--color-text-dim);
+  font-style: italic;
+}
+.lt-sector {
+  font-size: 12px;
+  padding-left: 2px !important;
+}
+
+/* Шина (§5.4): кільце 3 px кольору компаунда, літера всередині; вживаний - пунктир. */
+.lt-tyre {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  width: 100%;
+}
+.lt-tyre-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid var(--lt-tc, var(--color-tyre-unknown));
+  display: inline-grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-text);
+  flex: none;
+}
+.lt-tyre-badge[data-used="true"] {
+  border-style: dotted;
+}
+.lt-tyre-age {
+  font-size: 12px;
+  color: var(--color-text-dim);
+  min-width: 1.4em;
+  text-align: right;
+}
+
+.lt-pred b {
+  font-weight: 600;
+  margin-left: 3px;
+}
+.lt-pred b[data-dir="up"] {
+  color: var(--color-good);
+}
+.lt-pred b[data-dir="down"] {
+  color: var(--color-danger);
+}
+
+/* Сегментований перемикач режиму відставання. */
+.lt-seg {
+  display: inline-flex;
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  padding: 2px;
+}
+.lt-seg button {
+  border: 0;
+  background: none;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: var(--color-text-dim);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 120ms, color 120ms;
+}
+.lt-seg button:hover {
+  color: var(--color-text);
+}
+.lt-seg button[aria-pressed="true"] {
+  background: var(--color-accent);
+  color: #fff;
+}
+.lt-th-btn {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.lt-th-btn:hover {
+  color: var(--color-text);
+}
+
+/* Skeleton: сірі блоки з повільною пульсацією 1.5 с, без спінерів. */
+.lt-skel {
+  display: inline-block;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--color-surface-2);
+  animation: lt-skel 1.5s ease-in-out infinite;
+}
+@keyframes lt-skel {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.lt-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------- status bar */
+.lt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line);
+  color: var(--color-text-dim);
+  white-space: nowrap;
+}
+.lt-badge[data-mode="live"] {
+  color: var(--color-text);
+}
+.lt-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+.lt-fresh-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+  box-sizing: border-box;
+}
+.lt-fresh-dot[data-state="fresh"] {
+  background: var(--color-good);
+}
+.lt-fresh-dot[data-state="buffering"],
+.lt-fresh-dot[data-state="connecting"] {
+  border: 2px solid var(--color-warn);
+  background: linear-gradient(90deg, var(--color-warn) 50%, transparent 50%);
+}
+.lt-fresh-dot[data-state="nodata"],
+.lt-fresh-dot[data-state="lost"],
+.lt-fresh-dot[data-state="error"] {
+  border: 2px solid var(--color-danger);
+  background: transparent;
+}
+.lt-fresh-dot[data-state="paused"],
+.lt-fresh-dot[data-state="ended"] {
+  background: var(--color-text-dim);
+}
+.lt-flag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.lt-flag-chip[data-kind="green"] {
+  background: var(--color-flag-green);
+  color: #fff;
+}
+.lt-flag-chip[data-kind="chequered"] {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line);
+  color: var(--color-text);
+}
+.lt-flag-chip[data-kind="phase"] {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line);
+  color: var(--color-text);
+}
+.lt-chequer {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: repeating-conic-gradient(var(--color-flag-chequered-dark) 0 25%, var(--color-flag-chequered-light) 0 50%) 0 0 / 6px 6px;
+  box-shadow: 0 0 0 1px var(--color-line);
+}
+.lt-popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  min-width: 260px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+  background: var(--color-surface-2);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.45);
+  font-size: 12px;
+}
+
+/* ---------------------------------------------------------------- banner */
+.lt-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--color-flag-yellow);
+  color: var(--color-flag-ink);
+}
+.lt-banner[data-tone="red"] {
+  background: var(--color-flag-red);
+  color: #fff;
+}
+.lt-banner[data-tone="sc"] {
+  background: var(--color-flag-sc);
+}
+.lt-banner[data-tone="vsc"] {
+  background: repeating-linear-gradient(135deg, var(--color-flag-sc) 0 14px, color-mix(in srgb, var(--color-flag-sc) 78%, #000) 14px 22px);
+}
+.lt-banner-abbr {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--color-flag-ink);
+  color: var(--color-flag-sc);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.lt-banner-bars {
+  display: inline-flex;
+  gap: 3px;
+}
+.lt-banner-bars i {
+  width: 5px;
+  height: 16px;
+  background: currentColor;
+  border-radius: 1px;
+}
+.lt-banner small {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.85;
+}
+.lt-banner[data-animate="true"] {
+  animation: lt-banner-drop 200ms ease-out, lt-banner-pulse 600ms ease-in-out 200ms 2;
+}
+@keyframes lt-banner-drop {
+  from {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+}
+@keyframes lt-banner-pulse {
+  50% {
+    filter: brightness(1.18);
+    box-shadow: 0 0 0 3px rgb(255 255 255 / 0.18);
+  }
+}
+
+/* ---------------------------------------------------------------- reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .lt-skel,
+  .lt-banner[data-animate="true"] {
+    animation: none;
+  }
+  .lt-seg button {
+    transition: none;
+  }
+}
