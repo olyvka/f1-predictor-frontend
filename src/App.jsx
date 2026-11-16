@@ -49,8 +49,8 @@ function LanguageSwitch() {
   );
 }
 
-// Посилання на /live - лише якщо на сервері є підписка і в календарі є сесія.
-// Наживо - червона крапка. Статус перевіряється раз на хвилину.
+// Кнопка на екран /live - завжди (там таймер до найближчої сесії). Коли сесія
+// йде наживо і сервер має підписку - червона крапка. Статус - раз на хвилину.
 function LiveLink() {
   const { t } = useTranslation();
   const [status, setStatus] = useState(null);
@@ -68,8 +68,7 @@ function LiveLink() {
       clearInterval(id);
     };
   }, []);
-  if (!status?.configured || !["live", "upcoming"].includes(status.status)) return null;
-  const isLive = status.status === "live";
+  const isLive = status?.status === "live" && status.configured;
   return (
     <Link
       to="/live"
