@@ -1,0 +1,156 @@
+/* Стрічка race control (W7) і чіпи прапорів (§5.3). Префікс lev- (live events). */
+@layer components {
+  .lev-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .lev-panel[data-layout="mobile"] { height: min(68dvh, 560px); }
+  .lev-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--color-line);
+  }
+  .lev-filters { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+  .lev-filters button {
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--color-text-dim);
+    transition: background-color 120ms linear, color 120ms linear;
+  }
+  .lev-filters button:hover { color: var(--color-text); }
+  .lev-filters button[aria-pressed="true"] { background: var(--color-accent); color: #fff; }
+  .lev-filters button small { opacity: 0.75; font-weight: 500; margin-left: 3px; }
+
+  .lev-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-anchor: none;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .lev-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 3px 8px;
+    padding: 7px 12px;
+    border-bottom: 1px solid var(--color-line);
+    font-size: 12.5px;
+    line-height: 1.35;
+  }
+  .lev-item[data-new="true"] { animation: lev-in 200ms ease-out; }
+  .lev-item[data-mine="true"] { background: var(--color-surface-hover); box-shadow: inset 2px 0 0 var(--color-text-dim); }
+  .lev-meta {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    font-size: 11px;
+    color: var(--color-text-dim);
+  }
+  .lev-msg { grid-column: 2; color: var(--color-text); overflow-wrap: anywhere; }
+  .lev-tla {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 700;
+    color: var(--color-text);
+    letter-spacing: 0.02em;
+  }
+  .lev-tla i { width: 3px; height: 11px; border-radius: 1px; }
+  .lev-empty { padding: 16px 12px; color: var(--color-text-dim); font-size: 12.5px; }
+
+  .lev-newchip {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--color-accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.45);
+    cursor: pointer;
+  }
+
+  /* ---- чіп прапора: колір + іконка + слово ---- */
+  .lev-flag {
+    grid-row: span 2;
+    align-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    background: var(--color-surface-2);
+    color: var(--color-text-dim);
+    border: 1px solid var(--color-line);
+  }
+  .lev-flag .ico { display: inline-flex; gap: 2px; }
+  .lev-flag .ico b { display: inline-block; width: 3px; height: 9px; border-radius: 1px; background: currentColor; }
+  .lev-flag .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+  .lev-flag[data-kind="green"], .lev-flag[data-kind="clear"] { background: var(--color-flag-green); color: #fff; border-color: transparent; }
+  .lev-flag[data-kind="yellow"], .lev-flag[data-kind="double-yellow"] { background: var(--color-flag-yellow); color: var(--color-flag-ink); border-color: transparent; }
+  .lev-flag[data-kind="sc"] { background: var(--color-flag-sc); color: var(--color-flag-ink); border-color: transparent; }
+  .lev-flag[data-kind="vsc"] {
+    background: repeating-linear-gradient(135deg, var(--color-flag-sc) 0 5px, color-mix(in srgb, var(--color-flag-sc) 70%, #000) 5px 8px);
+    color: var(--color-flag-ink);
+    border-color: transparent;
+  }
+  .lev-flag[data-kind="red"] { background: var(--color-flag-red); color: #fff; border-color: transparent; }
+  .lev-flag[data-kind="blue"] { background: var(--color-flag-blue); color: #fff; border-color: transparent; }
+  .lev-flag[data-kind="black"], .lev-flag[data-kind="black-orange"], .lev-flag[data-kind="raw"] { background: var(--color-flag-ink); color: #fff; border-color: #fff; }
+  .lev-flag[data-kind="chequered"] .sw {
+    background: repeating-conic-gradient(var(--color-flag-chequered-dark) 0 25%, var(--color-flag-chequered-light) 0 50%) 0 0 / 5px 5px;
+  }
+  .lev-flag[data-kind="bw"] .sw { background: linear-gradient(135deg, #fff 50%, #111 50%); border: 1px solid #fff; }
+  .lev-flag[data-kind="black-orange"] .sw { background: radial-gradient(circle, #f97316 45%, #111 46%); }
+
+  /* ---- тости W16 ---- */
+  .lev-toast {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    z-index: 3;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-line);
+    box-shadow: 0 6px 16px rgb(0 0 0 / 0.5);
+    font-size: 12.5px;
+    animation: lev-in 200ms ease-out;
+  }
+  .lev-toast[data-kind="pit"] { border-left: 3px solid var(--color-pit-lane); }
+  .lev-toast[data-kind="fastest"] { border-left: 3px solid var(--color-timing-purple); }
+
+  @keyframes lev-in {
+    from { opacity: 0; transform: translateY(-4px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lev-item[data-new="true"], .lev-toast { animation: none; }
+  }
+}
